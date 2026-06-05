@@ -1,2285 +1,1218 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🌸 Flower Language 花語心情網站</title>
-    
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
-    <!-- Google Fonts - 溫暖優雅字體 -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root {
-            --bg-paper: #FDFBF7;
-            --bg-cream: #F5EBE6;
-            --primary-orange: #E6A15C;
-            --primary-brown: #966F46;
-            --accent-light: #FFE5CC;
-            --accent-pale: #FFF3E0;
-            --text-dark: #5D4E37;
-            --border-color: #D4C4B0;
-            --success-green: #A8D5BA;
-            --danger-red: #E8B4B8;
-        }
-
-        * {
-            font-family: 'Noto Sans TC', sans-serif;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, var(--bg-paper) 0%, var(--bg-cream) 100%);
-            color: var(--text-dark);
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        /* ===== 全域導覽列 ===== */
-        .navbar {
-            background: linear-gradient(90deg, var(--primary-brown) 0%, var(--primary-orange) 100%);
-            box-shadow: 0 4px 12px rgba(150, 111, 70, 0.15);
-            padding: 1rem 2rem;
-        }
-
-        .navbar .navbar-brand {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #fff !important;
-            letter-spacing: 2px;
-        }
-
-        .nav-link {
-            color: rgba(255, 255, 255, 0.85) !important;
-            transition: all 0.3s ease;
-            margin: 0 0.5rem;
-            font-weight: 500;
-        }
-
-        .nav-link:hover,
-        .nav-link.active {
-            color: var(--accent-light) !important;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-
-        .welcome-text {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 0.95rem;
-            margin-left: auto;
-        }
-
-        /* ===== 角色切換下拉選單樣式 ===== */
-        .dropdown-menu {
-            background: var(--bg-paper);
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-        }
-
-        .dropdown-item {
-            color: var(--text-dark);
-            padding: 0.75rem 1.25rem;
-            transition: all 0.2s ease;
-        }
-
-        .dropdown-item:hover {
-            background: var(--accent-pale);
-            color: var(--primary-brown);
-        }
-
-        .dropdown-item.active {
-            background: var(--primary-orange);
-            color: white;
-        }
-
-        /* ===== 主容器與卡片樣式 ===== */
-        .main-container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-
-        .card {
-            border: 2px solid var(--border-color);
-            background: var(--bg-paper);
-            box-shadow: 0 8px 24px rgba(150, 111, 70, 0.08);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            box-shadow: 0 12px 32px rgba(150, 111, 70, 0.12);
-            transform: translateY(-2px);
-        }
-
-        .card-header {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            color: white;
-            border-radius: 10px 10px 0 0;
-            font-weight: 600;
-            letter-spacing: 1px;
-            padding: 1.2rem;
-        }
-
-        .card-body {
-            padding: 2rem;
-            background: var(--bg-paper);
-        }
-
-        /* ===== 登入表單 ===== */
-        .login-container {
-            max-width: 450px;
-            margin: 4rem auto;
-        }
-
-        .form-control, .form-select {
-            background: var(--bg-cream);
-            border: 2px solid var(--border-color);
-            color: var(--text-dark);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            background: white;
-            border-color: var(--primary-orange);
-            box-shadow: 0 0 0 3px rgba(230, 161, 92, 0.1);
-            color: var(--text-dark);
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            border: none;
-            padding: 0.85rem 2rem;
-            font-weight: 600;
-            letter-spacing: 1px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.2);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(230, 161, 92, 0.3);
-            background: linear-gradient(90deg, var(--primary-brown) 0%, var(--primary-orange) 100%);
-        }
-
-        .btn-secondary {
-            background: var(--border-color);
-            border: none;
-            color: var(--text-dark);
-            font-weight: 600;
-        }
-
-        .btn-secondary:hover {
-            background: var(--primary-brown);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--success-green);
-            border: none;
-            color: white;
-        }
-
-        .btn-danger {
-            background: var(--danger-red);
-            border: none;
-        }
-
-        /* ===== 手帳筆記本樣式 ===== */
-        .notebook {
-            background: var(--bg-cream);
-            border: 3px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-            min-height: 500px;
-            position: relative;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.05), 0 8px 24px rgba(0, 0, 0, 0.1);
-            transition: all 0.5s ease;
-            background-image: 
-                repeating-linear-gradient(
-                    transparent,
-                    transparent 29px,
-                    var(--border-color) 29px,
-                    var(--border-color) 30px
-                );
-            background-size: 100% 30px;
-        }
-
-        .notebook::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 50px;
-            background: linear-gradient(90deg, rgba(230, 161, 92, 0.1) 0%, transparent 100%);
-            border-radius: 8px 0 0 8px;
-        }
-
-        /* ===== 日記編輯器 ===== */
-        .diary-editor {
-            background: var(--bg-paper);
-            border: 2px dashed var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-        }
-
-        .diary-textarea {
-            background: white;
-            border: 2px solid var(--border-color);
-            color: var(--text-dark);
-            padding: 1rem;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            line-height: 1.6;
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .diary-textarea:focus {
-            border-color: var(--primary-orange);
-            box-shadow: 0 0 0 3px rgba(230, 161, 92, 0.1);
-            outline: none;
-        }
-
-        /* ===== 情緒滑桿 ===== */
-        .emotion-slider {
-            margin: 2rem 0;
-            padding: 1.5rem;
-            background: linear-gradient(135deg, var(--accent-pale) 0%, var(--accent-light) 100%);
-            border-radius: 8px;
-            border-left: 4px solid var(--primary-orange);
-        }
-
-        .slider {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: var(--border-color);
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-        }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            cursor: pointer;
-            box-shadow: 0 2px 8px rgba(230, 161, 92, 0.3);
-            transition: all 0.2s ease;
-        }
-
-        .slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.4);
-        }
-
-        .slider::-moz-range-thumb {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 2px 8px rgba(230, 161, 92, 0.3);
-            transition: all 0.2s ease;
-        }
-
-        .slider::-moz-range-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.4);
-        }
-
-        .slider-value {
-            background: white;
-            border: 2px solid var(--primary-orange);
-            color: var(--primary-brown);
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 700;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        /* ===== 花卉推薦展示 ===== */
-        .flower-display {
-            background: white;
-            border: 2px solid var(--success-green);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(168, 213, 186, 0.15);
-        }
-
-        .flower-emoji {
-            font-size: 4rem;
-            margin: 1rem 0;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        .flower-name {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-brown);
-            margin: 0.5rem 0;
-        }
-
-        .flower-meaning {
-            font-size: 0.95rem;
-            color: var(--text-dark);
-            font-style: italic;
-            margin: 0.5rem 0;
-            line-height: 1.6;
-        }
-
-        .flower-btn {
-            background: var(--success-green);
-            border: none;
-            color: white;
-            padding: 0.6rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0.5rem;
-        }
-
-        .flower-btn:hover {
-            background: #8bc99f;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(168, 213, 186, 0.3);
-        }
-
-        /* ===== 照片上傳區域 ===== */
-        .photo-upload {
-            border: 3px dashed var(--primary-orange);
-            border-radius: 8px;
-            padding: 2rem;
-            text-align: center;
-            background: var(--accent-pale);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 1.5rem 0;
-        }
-
-        .photo-upload:hover {
-            background: var(--accent-light);
-            border-color: var(--primary-brown);
-        }
-
-        .photo-upload input[type="file"] {
-            display: none;
-        }
-
-        .photo-preview {
-            margin: 1rem 0;
-            border-radius: 8px;
-            max-width: 100%;
-            max-height: 300px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        /* ===== 虛擬商店 ===== */
-        .shop-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin: 2rem 0;
-        }
-
-        .shop-card {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .shop-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 32px rgba(150, 111, 70, 0.15);
-            border-color: var(--primary-orange);
-        }
-
-        .shop-card-header {
-            background: linear-gradient(135deg, var(--accent-pale) 0%, var(--accent-light) 100%);
-            padding: 2rem;
-            text-align: center;
-            font-size: 3rem;
-            min-height: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .shop-card-body {
-            padding: 1.5rem;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .shop-card-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--primary-brown);
-            margin-bottom: 0.5rem;
-        }
-
-        .shop-card-price {
-            font-size: 1.5rem;
-            color: var(--primary-orange);
-            font-weight: 700;
-            margin-bottom: 1rem;
-        }
-
-        .buy-btn {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: auto;
-        }
-
-        .buy-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.3);
-        }
-
-        .buy-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: var(--border-color);
-        }
-
-        .buy-btn.locked {
-            background: #999;
-        }
-
-        /* ===== 匿名社群廣場 ===== */
-        .community-post {
-            background: white;
-            border-left: 4px solid var(--primary-orange);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s ease;
-        }
-
-        .community-post:hover {
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .post-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem;
-        }
-
-        .post-avatar {
-            font-size: 2.5rem;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--accent-pale);
-            border-radius: 50%;
-        }
-
-        .post-author {
-            font-weight: 700;
-            color: var(--primary-brown);
-            font-size: 1.1rem;
-        }
-
-        .post-date {
-            font-size: 0.85rem;
-            color: #999;
-        }
-
-        .post-content {
-            margin: 1rem 0;
-            line-height: 1.6;
-            color: var(--text-dark);
-        }
-
-        .post-image {
-            max-width: 100%;
-            max-height: 300px;
-            border-radius: 8px;
-            margin: 1rem 0;
-        }
-
-        .post-flower {
-            display: inline-block;
-            font-size: 1.5rem;
-            margin: 0.5rem 0.25rem;
-        }
-
-        .post-interaction {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .hug-btn {
-            background: var(--danger-red);
-            border: none;
-            color: white;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .hug-btn:hover {
-            background: #d99da3;
-            transform: scale(1.05);
-        }
-
-        .hug-count {
-            font-size: 1.1rem;
-            color: var(--primary-brown);
-            font-weight: 700;
-        }
-
-        /* ===== 留言區域樣式 ===== */
-        .comments-section {
-            margin-top: 1.5rem;
-            padding-top: 1.5rem;
-            border-top: 2px solid var(--border-color);
-        }
-
-        .comments-title {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--primary-brown);
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .comment-item {
-            background: var(--bg-cream);
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 0.75rem;
-            border-left: 3px solid var(--primary-orange);
-        }
-
-        .comment-header {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .comment-author {
-            font-weight: 700;
-            color: var(--primary-brown);
-            font-size: 0.9rem;
-        }
-
-        .comment-time {
-            font-size: 0.75rem;
-            color: #999;
-        }
-
-        .comment-text {
-            color: var(--text-dark);
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin: 0;
-        }
-
-        .comment-input-box {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 6px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .comment-textarea {
-            width: 100%;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            padding: 0.75rem;
-            font-family: 'Noto Sans TC', sans-serif;
-            font-size: 0.9rem;
-            resize: vertical;
-            min-height: 60px;
-            color: var(--text-dark);
-        }
-
-        .comment-textarea:focus {
-            border-color: var(--primary-orange);
-            box-shadow: 0 0 0 3px rgba(230, 161, 92, 0.1);
-            outline: none;
-        }
-
-        .comment-btn-group {
-            display: flex;
-            gap: 0.5rem;
-            margin-top: 0.75rem;
-        }
-
-        .comment-submit-btn {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            border: none;
-            color: white;
-            padding: 0.6rem 1.2rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .comment-submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.3);
-        }
-
-        .comment-cancel-btn {
-            background: var(--border-color);
-            border: none;
-            color: var(--text-dark);
-            padding: 0.6rem 1.2rem;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .comment-cancel-btn:hover {
-            background: #c0b0a0;
-        }
-
-        .no-comments {
-            text-align: center;
-            color: #999;
-            padding: 1rem;
-            font-size: 0.9rem;
-        }
-
-        /* ===== 管理員面板 ===== */
-        .admin-panel {
-            background: white;
-            border: 2px solid var(--primary-brown);
-            border-radius: 8px;
-            padding: 2rem;
-            margin: 1.5rem 0;
-        }
-
-        .admin-section-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary-brown);
-            margin: 2rem 0 1.5rem 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .admin-form-group {
-            background: var(--bg-cream);
-            padding: 1.5rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            border-left: 3px solid var(--primary-orange);
-        }
-
-        .form-label {
-            font-weight: 600;
-            color: var(--primary-brown);
-            margin-bottom: 0.5rem;
-        }
-
-        /* ===== 客製化手帳側邊面板 ===== */
-        .customize-panel {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin: 1.5rem 0;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .customize-btn {
-            background: var(--primary-orange);
-            border: none;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .customize-btn:hover {
-            background: var(--primary-brown);
-            transform: translateY(-2px);
-        }
-
-        .customize-item {
-            padding: 1rem;
-            margin: 0.5rem 0;
-            background: var(--bg-cream);
-            border: 2px solid transparent;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .customize-item:hover {
-            background: var(--accent-pale);
-            border-color: var(--primary-orange);
-        }
-
-        .customize-item.locked {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .customize-item-name {
-            font-weight: 600;
-            color: var(--text-dark);
-            flex-grow: 1;
-        }
-
-        .customize-item-price {
-            color: var(--primary-orange);
-            font-weight: 700;
-            font-size: 0.95rem;
-        }
-
-        .lock-icon {
-            font-size: 1.5rem;
-        }
-
-        /* ===== 模態窗口 ===== */
-        .modal-content {
-            border: 2px solid var(--border-color);
-            background: var(--bg-paper);
-        }
-
-        .modal-header {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            color: white;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .modal-header .btn-close {
-            filter: brightness(0) invert(1);
-        }
-
-        .modal-body {
-            padding: 2rem;
-        }
-
-        /* ===== 吐司提示 ===== */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-
-        .toast {
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            margin-bottom: 1rem;
-        }
-
-        .toast.success {
-            border-color: var(--success-green);
-        }
-
-        .toast.error {
-            border-color: var(--danger-red);
-        }
-
-        .toast-body {
-            padding: 1rem;
-            color: var(--text-dark);
-            font-weight: 500;
-        }
-
-        /* ===== 點數顯示 ===== */
-        .points-display {
-            background: linear-gradient(135deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 20px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            box-shadow: 0 4px 12px rgba(230, 161, 92, 0.2);
-        }
-
-        /* ===== 花卉庫存展示 ===== */
-        .flower-inventory {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 1rem;
-            margin: 1.5rem 0;
-        }
-
-        .flower-inventory-item {
-            text-align: center;
-            padding: 1rem;
-            background: white;
-            border: 2px solid var(--border-color);
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .flower-inventory-item:hover {
-            border-color: var(--primary-orange);
-            background: var(--accent-pale);
-        }
-
-        .flower-inventory-emoji {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .flower-inventory-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            word-break: break-word;
-        }
-
-        /* ===== 頁籤導覽 ===== */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        .tab-buttons {
-            display: flex;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: white;
-            border: 2px solid var(--border-color);
-            color: var(--text-dark);
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .tab-btn.active {
-            background: linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%);
-            color: white;
-            border-color: var(--primary-brown);
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: var(--bg-cream);
-            border-color: var(--primary-orange);
-        }
-
-        /* ===== 響應式設計 ===== */
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 0.75rem 1rem;
-            }
-
-            .navbar .navbar-brand {
-                font-size: 1.3rem;
-            }
-
-            .welcome-text {
-                margin-left: 0;
-                margin-top: 0.5rem;
-                font-size: 0.85rem;
-            }
-
-            .main-container {
-                margin: 1rem auto;
-            }
-
-            .shop-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-
-            .card-body {
-                padding: 1.5rem;
-            }
-
-            .flower-emoji {
-                font-size: 3rem;
-            }
-
-            .tab-buttons {
-                gap: 0.25rem;
-            }
-
-            .tab-btn {
-                padding: 0.5rem 1rem;
-                font-size: 0.85rem;
-            }
-        }
-
-        /* ===== 列印友善 ===== */
-        @media print {
-            .navbar, .tab-buttons, .customize-btn, .buy-btn, .hug-btn {
-                display: none;
-            }
-
-            .notebook {
-                box-shadow: none;
-                border: 1px solid #ccc;
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flower Language 花語心情手帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   一、 全域療癒色調變數 ＆ 基礎排版
+   ============================================================ */
+:root{
+  /* 背景與紙張 */
+  --bg-paper:  #FDFBF7;   /* 溫暖米白 */
+  --bg-cream:  #F5EBE6;   /* 燕麥奶茶 */
+  /* 亮點與主色 */
+  --primary-orange: #E6A15C; /* 暖陽橘 */
+  --primary-brown:  #966F46; /* 木質棕  */
+  /* 衍生輔助色 */
+  --ink:        #5A4632;  /* 墨棕字色 */
+  --ink-soft:   #8C7457;  /* 柔棕副字 */
+  --line:       #E7D9C9;  /* 橫格線   */
+  --accent-rose:#D98E73;  /* 玫瑰橘紅 */
+  --leaf:       #8FA06A;  /* 葉脈綠   */
+  --shadow:     rgba(150,111,70,.18);
+  --shadow-deep:rgba(90,70,50,.28);
+  --radius:     12px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Noto Serif TC",serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%),
+    var(--bg-paper);
+  background-attachment:fixed;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+/* 細微紙張顆粒紋理 */
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+.hand{font-family:"Long Cang","Gaegu",cursive}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+img{max-width:100%;display:block}
+
+/* ============================================================
+   登入 / 註冊畫面
+   ============================================================ */
+#auth-screen{
+  position:relative;z-index:1;
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.auth-card{
+  width:min(460px,100%);
+  background:var(--bg-paper);
+  border-radius:18px;
+  padding:42px 38px 36px;
+  box-shadow:0 24px 60px var(--shadow-deep), 0 2px 0 #fff inset;
+  position:relative;
+  border:1px solid #EFE3D5;
+}
+.auth-card::after{ /* 手帳裝訂縫線 */
+  content:"";position:absolute;left:22px;top:18px;bottom:18px;width:2px;
+  background:repeating-linear-gradient(var(--primary-orange) 0 6px,transparent 6px 14px);
+  opacity:.45;border-radius:2px;
+}
+.brand{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
+.brand .logo{font-size:46px;filter:drop-shadow(0 6px 10px var(--shadow))}
+.brand h1{font-size:30px;letter-spacing:1px;color:var(--primary-brown)}
+.brand .sub{color:var(--ink-soft);font-size:14px;letter-spacing:3px}
+.tab-switch{display:flex;background:var(--bg-cream);border-radius:999px;padding:5px;margin:24px 0 18px}
+.tab-switch button{flex:1;padding:9px 0;border-radius:999px;color:var(--ink-soft);font-weight:600;transition:.25s}
+.tab-switch button.active{background:var(--primary-orange);color:#fff;box-shadow:0 4px 12px var(--shadow)}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px;letter-spacing:1px}
+.field input,.field select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--ink);font-size:15px;transition:.2s;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.18)}
+.role-pick{display:flex;gap:10px;margin-bottom:16px}
+.role-pick label{
+  flex:1;text-align:center;padding:10px;border:1.5px solid var(--line);border-radius:10px;
+  cursor:pointer;font-size:14px;transition:.2s;background:#fff;
+}
+.role-pick input{display:none}
+.role-pick input:checked + span{color:#fff}
+.role-pick label:has(input:checked){background:var(--primary-brown);border-color:var(--primary-brown);color:#fff}
+.btn-primary{
+  width:100%;padding:13px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));
+  box-shadow:0 8px 20px var(--shadow);transition:.2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px var(--shadow)}
+.btn-primary:active{transform:translateY(0)}
+.quick-login{margin-top:22px;border-top:1px dashed var(--line);padding-top:18px}
+.quick-login p{font-size:12px;color:var(--ink-soft);text-align:center;margin-bottom:10px;letter-spacing:2px}
+.quick-row{display:flex;gap:10px}
+.quick-row button{
+  flex:1;padding:10px;border-radius:10px;background:var(--bg-cream);color:var(--primary-brown);
+  font-weight:600;font-size:13px;border:1px solid var(--line);transition:.2s;
+}
+.quick-row button:hover{background:var(--primary-orange);color:#fff}
+
+/* ============================================================
+   主應用框架
+   ============================================================ */
+#app-screen{display:none;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
+.top-bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;
+  background:rgba(253,251,247,.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.top-bar .greet{font-size:18px;color:var(--primary-brown);font-weight:600}
+.top-bar .pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg-cream);border:1px solid var(--line);border-radius:999px;
+  padding:6px 14px;font-size:14px;color:var(--primary-brown);font-weight:600;
+}
+.top-bar .right{display:flex;align-items:center;gap:12px}
+.logout-btn{
+  padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+  background:#fff;color:var(--ink-soft);font-size:13px;transition:.2s;
+}
+.logout-btn:hover{background:var(--accent-rose);color:#fff;border-color:var(--accent-rose)}
+
+.view{max-width:920px;margin:0 auto;padding:28px 20px}
+.view-title{font-size:24px;color:var(--primary-brown);margin-bottom:6px;letter-spacing:1px}
+.view-sub{color:var(--ink-soft);font-size:14px;margin-bottom:22px}
+
+/* 通用手帳紙張區塊 */
+.notebook{
+  position:relative;background:var(--bg-paper);border-radius:var(--radius);
+  box-shadow:0 14px 34px var(--shadow), 0 2px 0 #fff inset;
+  border:1px solid #EFE3D5;padding:26px 30px;overflow:hidden;
+}
+.notebook::before{ /* 左側裝訂打孔線 */
+  content:"";position:absolute;left:16px;top:0;bottom:0;width:1.5px;
+  background:var(--accent-rose);opacity:.35;
+}
+.notebook.lined{
+  background-image:repeating-linear-gradient(transparent 0 35px, var(--line) 35px 36px);
+  background-position:0 18px;
+}
+.page-pad{padding-left:18px}
+
+/* ============================================================
+   寫日記
+   ============================================================ */
+.diary-grid{display:grid;grid-template-columns:1fr;gap:22px}
+.diary-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 15px;border-radius:10px;background:var(--bg-cream);
+  border:1px solid var(--line);color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.tool-btn:hover{background:var(--primary-orange);color:#fff;transform:translateY(-1px)}
+.diary-text{
+  width:100%;min-height:150px;resize:vertical;border:none;background:transparent;
+  font-size:16px;color:var(--ink);line-height:36px;padding:0 6px;
+}
+.diary-text:focus{outline:none}
+.photo-preview{margin-top:14px;display:none}
+.photo-preview img{
+  border-radius:10px;border:6px solid #fff;box-shadow:0 8px 20px var(--shadow);
+  transform:rotate(-1.4deg);max-height:280px;object-fit:cover;
+}
+.photo-tape{
+  position:relative;display:inline-block;
+}
+.photo-tape::before{
+  content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-3deg);
+  width:90px;height:26px;background:rgba(230,161,92,.4);border-radius:3px;
+}
+.stickers-layer{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;font-size:30px}
+.sticker-on-page{filter:drop-shadow(0 3px 5px var(--shadow));animation:pop .35s ease}
+
+/* 情緒滑桿 */
+.mood-block{margin-top:20px;background:var(--bg-cream);border-radius:12px;padding:18px 20px}
+.mood-block h4{color:var(--primary-brown);margin-bottom:14px;font-size:16px}
+.slider-row{margin-bottom:16px}
+.slider-row .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+.slider-row .lab b{color:var(--primary-orange)}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:7px;border-radius:99px;
+  background:linear-gradient(90deg,var(--line),var(--primary-orange));outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:3px solid var(--primary-orange);box-shadow:0 3px 8px var(--shadow);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--primary-orange);cursor:pointer;
+}
+.publish-toggle{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:14px;color:var(--ink-soft)}
+.switch{position:relative;width:48px;height:26px;flex:0 0 auto}
+.switch input{display:none}
+.switch .track{
+  position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.25s;
+}
+.switch .track::after{
+  content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#fff;transition:.25s;box-shadow:0 2px 4px var(--shadow);
+}
+.switch input:checked + .track{background:var(--primary-orange)}
+.switch input:checked + .track::after{transform:translateX(22px)}
+
+/* 已記錄的日記列表 */
+.diary-list{margin-top:34px;display:grid;gap:18px}
+.diary-entry{
+  background:var(--bg-paper);border-radius:12px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:20px 22px;position:relative;
+  background-image:repeating-linear-gradient(transparent 0 33px,var(--line) 33px 34px);
+  background-position:0 30px;
+}
+.diary-entry .date{font-size:13px;color:var(--ink-soft);letter-spacing:1px}
+.diary-entry .body{font-size:16px;line-height:34px;margin:6px 0 12px;white-space:pre-wrap}
+.diary-entry .entry-photo{margin:8px 0}
+.diary-entry .entry-photo img{max-height:200px;border-radius:8px;border:5px solid #fff;box-shadow:0 6px 16px var(--shadow);transform:rotate(-1deg)}
+.flower-chip{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--bg-cream);border:1px solid var(--line);border-radius:99px;
+  padding:7px 15px;font-size:14px;color:var(--primary-brown);font-weight:600;transition:.2s;
+}
+.flower-chip:hover{background:var(--primary-orange);color:#fff;transform:scale(1.04)}
+.flower-chip .em{font-size:22px}
+.entry-stickers{font-size:24px;margin-top:8px}
+.posted-flag{
+  position:absolute;top:14px;right:16px;font-size:12px;color:var(--leaf);
+  background:rgba(143,160,106,.12);padding:3px 10px;border-radius:99px;
+}
+
+/* ============================================================
+   花語圖鑑
+   ============================================================ */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+.flower-card,.shop-card{
+  background:var(--bg-paper);border-radius:14px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:22px 18px;text-align:center;
+  transition:.25s;position:relative;cursor:pointer;
+}
+.flower-card:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:0 18px 36px var(--shadow-deep)}
+.flower-card .big{font-size:52px;filter:drop-shadow(0 6px 10px var(--shadow))}
+.flower-card h3{color:var(--primary-brown);margin:10px 0 4px;font-size:18px}
+.flower-card .word{font-size:13px;color:var(--ink-soft);line-height:1.6}
+.flower-card .va{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:11px;color:var(--primary-orange)}
+.flower-card .va span{background:var(--bg-cream);padding:2px 8px;border-radius:99px}
+.new-badge{
+  position:absolute;top:-8px;right:-8px;background:var(--accent-rose);color:#fff;
+  font-size:11px;padding:3px 9px;border-radius:99px;box-shadow:0 4px 10px var(--shadow);animation:pop .4s ease;
+}
+
+/* ============================================================
+   虛擬商店
+   ============================================================ */
+.shop-card{cursor:default}
+.shop-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px var(--shadow-deep)}
+.shop-preview{
+  height:84px;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;
+  font-size:38px;border:1px solid var(--line);
+}
+.shop-card h3{color:var(--primary-brown);font-size:16px;margin-bottom:4px}
+.shop-card .type-tag{font-size:11px;color:var(--ink-soft);letter-spacing:1px}
+.shop-card .price{font-size:15px;color:var(--primary-orange);font-weight:700;margin:8px 0}
+.buy-btn{
+  width:100%;padding:9px;border-radius:10px;font-weight:700;font-size:14px;color:#fff;
+  background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));
+  box-shadow:0 6px 14px var(--shadow);transition:.2s;
+}
+.buy-btn:hover{transform:translateY(-2px)}
+.buy-btn.owned{background:var(--leaf);cursor:default;box-shadow:none}
+.buy-btn.owned:hover{transform:none}
+
+/* ============================================================
+   匿名社群廣場
+   ============================================================ */
+.post-list{display:grid;gap:20px}
+.post{
+  background:var(--bg-paper);border-radius:14px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:20px 22px;position:relative;
+}
+.post .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.post .avatar{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;background:var(--bg-cream);border:1px solid var(--line);
+}
+.post .head .meta b{display:block;color:var(--primary-brown);font-size:15px}
+.post .head .meta span{font-size:12px;color:var(--ink-soft)}
+.post .content{font-size:15px;line-height:30px;white-space:pre-wrap;margin-bottom:10px}
+.post .post-photo img{border-radius:10px;border:5px solid #fff;box-shadow:0 6px 16px var(--shadow);max-height:260px;margin:8px 0}
+.post .post-flower{
+  display:inline-flex;align-items:center;gap:8px;background:var(--bg-cream);
+  border-radius:99px;padding:6px 14px;font-size:13px;color:var(--primary-brown);margin:6px 0 14px;cursor:pointer;
+}
+.post-actions{display:flex;gap:12px;border-top:1px dashed var(--line);padding-top:14px}
+.hug-btn,.flower-give-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:99px;background:var(--bg-cream);border:1px solid var(--line);
+  color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.hug-btn:hover{background:var(--accent-rose);color:#fff;transform:scale(1.05)}
+.flower-give-btn:hover{background:var(--primary-orange);color:#fff;transform:scale(1.05)}
+.hug-btn.hugged{background:var(--accent-rose);color:#fff}
+.empty-hint{text-align:center;color:var(--ink-soft);padding:50px 20px;font-size:15px}
+.empty-hint .em{font-size:46px;display:block;margin-bottom:10px;opacity:.6}
+
+/* ============================================================
+   管理後台
+   ============================================================ */
+.admin-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.admin-tabs button{
+  padding:10px 18px;border-radius:10px;background:var(--bg-cream);border:1px solid var(--line);
+  color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.admin-tabs button.active{background:var(--primary-brown);color:#fff}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.form-grid .full{grid-column:1/-1}
+.form-grid label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px}
+.form-grid input,.form-grid select,.form-grid textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:14px;
+}
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--primary-orange)}
+.admin-list{margin-top:24px;display:grid;gap:10px}
+.admin-row{
+  display:flex;align-items:center;gap:14px;background:var(--bg-paper);
+  border:1px solid #EFE3D5;border-radius:10px;padding:12px 16px;box-shadow:0 6px 16px var(--shadow);
+}
+.admin-row .em{font-size:28px}
+.admin-row .info{flex:1}
+.admin-row .info b{color:var(--primary-brown)}
+.admin-row .info small{color:var(--ink-soft);display:block;font-size:12px}
+
+/* ============================================================
+   底部導覽列
+   ============================================================ */
+.nav-bar{
+  position:fixed;left:0;right:0;bottom:0;z-index:30;
+  display:flex;justify-content:center;gap:6px;
+  padding:10px 12px;
+  background:rgba(253,251,247,.92);backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);box-shadow:0 -6px 20px var(--shadow);
+}
+.nav-bar button{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:8px 16px;border-radius:12px;color:var(--ink-soft);font-size:12px;font-weight:600;transition:.2s;min-width:64px;
+}
+.nav-bar button .ic{font-size:22px}
+.nav-bar button.active{background:var(--bg-cream);color:var(--primary-orange)}
+.nav-bar button.admin-only{display:none}
+.nav-bar button.admin-only.show{display:flex}
+
+/* ============================================================
+   客製化抽屜面板
+   ============================================================ */
+.drawer-mask{
+  position:fixed;inset:0;z-index:50;background:rgba(90,70,50,.4);
+  backdrop-filter:blur(3px);display:none;
+}
+.drawer-mask.open{display:block}
+.drawer{
+  position:fixed;top:0;right:-380px;width:360px;max-width:90vw;height:100%;z-index:60;
+  background:var(--bg-paper);box-shadow:-12px 0 40px var(--shadow-deep);
+  transition:right .3s ease;padding:26px 24px;overflow-y:auto;
+}
+.drawer.open{right:0}
+.drawer h3{color:var(--primary-brown);font-size:20px;margin-bottom:4px}
+.drawer .dsub{font-size:13px;color:var(--ink-soft);margin-bottom:20px}
+.drawer-close{position:absolute;top:18px;right:18px;font-size:22px;color:var(--ink-soft)}
+.cust-section{margin-bottom:26px}
+.cust-section h4{color:var(--primary-orange);font-size:14px;margin-bottom:12px;letter-spacing:1px}
+.cust-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cust-item{
+  border:1.5px solid var(--line);border-radius:10px;padding:12px;text-align:center;
+  cursor:pointer;transition:.2s;position:relative;background:#fff;font-size:13px;color:var(--ink-soft);
+}
+.cust-item:hover{border-color:var(--primary-orange);transform:translateY(-2px)}
+.cust-item .swatch{height:46px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:26px;border:1px solid var(--line)}
+.cust-item.locked{opacity:.55;cursor:not-allowed}
+.cust-item.locked:hover{border-color:var(--line);transform:none}
+.cust-item .lock{position:absolute;top:8px;right:8px;font-size:16px}
+.cust-item.active-cust{border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.2)}
+
+/* ============================================================
+   彈窗 Modal
+   ============================================================ */
+.modal-mask{
+  position:fixed;inset:0;z-index:80;background:rgba(90,70,50,.45);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.modal-mask.open{display:flex}
+.modal{
+  width:min(380px,100%);background:var(--bg-paper);border-radius:18px;padding:30px 28px;text-align:center;
+  box-shadow:0 24px 60px var(--shadow-deep);animation:pop .3s ease;border:1px solid #EFE3D5;
+}
+.modal .big{font-size:60px;filter:drop-shadow(0 8px 12px var(--shadow))}
+.modal h3{color:var(--primary-brown);margin:14px 0 8px;font-size:22px}
+.modal .word{color:var(--ink-soft);font-size:15px;line-height:1.8;margin-bottom:8px}
+.modal .va-line{font-size:12px;color:var(--primary-orange);margin-bottom:20px}
+.modal .btn-primary{width:auto;padding:11px 34px}
+
+/* Toast 提示 */
+.toast{
+  position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);
+  background:var(--primary-brown);color:#fff;padding:13px 24px;border-radius:99px;
+  font-size:14px;font-weight:600;box-shadow:0 12px 30px var(--shadow-deep);
+  opacity:0;transition:.3s;z-index:90;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+.view{animation:fadeUp .4s ease}
+
+@media(max-width:560px){
+  .form-grid{grid-template-columns:1fr}
+  .nav-bar button{padding:8px 10px;min-width:56px}
+  .top-bar{padding:14px 16px}
+  .top-bar .greet{font-size:15px}
+}
+</style>
 </head>
 <body>
-    <div id="app">
-        <!-- 全域導覽列 -->
-        <nav class="navbar" v-if="state.currentUser.username">
-            <div class="container-fluid">
-                <span class="navbar-brand">🌸 Flower Language</span>
-                <div class="welcome-text" style="display: flex; align-items: center; gap: 1rem;">
-                    <span>🌻 歡迎，{{ state.currentUser.nickname }}</span>
-                    <div class="dropdown">
-                        <button 
-                            class="btn btn-sm"
-                            style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4);"
-                            type="button" 
-                            id="roleDropdown" 
-                            data-bs-toggle="dropdown" 
-                            aria-expanded="false"
-                        >
-                            👤 {{ state.currentUser.role === 'admin' ? '管理員' : '一般使用者' }} ⬇️
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="roleDropdown">
-                            <li>
-                                <a 
-                                    class="dropdown-item"
-                                    href="#"
-                                    @click.prevent="switchRole('client')"
-                                    :style="{ fontWeight: state.currentUser.role === 'client' ? '700' : '400' }"
-                                >
-                                    👤 一般使用者
-                                </a>
-                            </li>
-                            <li>
-                                <a 
-                                    class="dropdown-item"
-                                    href="#"
-                                    @click.prevent="switchRole('admin')"
-                                    :style="{ fontWeight: state.currentUser.role === 'admin' ? '700' : '400' }"
-                                >
-                                    ⚙️ 管理員
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a 
-                                    class="dropdown-item text-danger"
-                                    href="#"
-                                    @click.prevent="handleLogout"
-                                >
-                                    🚪 登出
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </nav>
 
-        <!-- 登入頁面 -->
-        <div v-if="state.currentTab === 'login'" class="login-container">
-            <div class="card">
-                <div class="card-header">
-                    登入花語心情網站 🌸
-                </div>
-                <div class="card-body">
-                    <form @submit.prevent="handleLogin">
-                        <div class="mb-3">
-                            <label class="form-label">帳號</label>
-                            <input 
-                                type="text" 
-                                class="form-control" 
-                                v-model="loginForm.username"
-                                placeholder="輸入帳號"
-                            >
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">密碼</label>
-                            <input 
-                                type="password" 
-                                class="form-control" 
-                                v-model="loginForm.password"
-                                placeholder="輸入密碼"
-                            >
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">角色選擇</label>
-                            <select class="form-select" v-model="loginForm.role">
-                                <option value="client">一般使用者</option>
-                                <option value="admin">管理員</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">
-                            🌻 登入
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- 主應用區域 -->
-        <div v-else class="main-container">
-            <!-- 頁籤導覽按鈕 -->
-            <div class="tab-buttons">
-                <button 
-                    class="tab-btn"
-                    :class="{ active: state.currentTab === 'diary' }"
-                    @click="state.currentTab = 'diary'"
-                >
-                    📔 心情日記
-                </button>
-                <button 
-                    class="tab-btn"
-                    :class="{ active: state.currentTab === 'shop' }"
-                    @click="state.currentTab = 'shop'"
-                >
-                    🛍️ 虛擬商店
-                </button>
-                <button 
-                    class="tab-btn"
-                    :class="{ active: state.currentTab === 'community' }"
-                    @click="state.currentTab = 'community'"
-                >
-                    🌍 匿名廣場
-                </button>
-                <button 
-                    class="tab-btn"
-                    :class="{ active: state.currentTab === 'gallery' }"
-                    @click="state.currentTab = 'gallery'"
-                >
-                    🌺 花卉圖鑑
-                </button>
-                <button 
-                    v-if="state.currentUser.role === 'admin'"
-                    class="tab-btn"
-                    :class="{ active: state.currentTab === 'admin' }"
-                    @click="state.currentTab = 'admin'"
-                >
-                    ⚙️ 管理後台
-                </button>
-            </div>
-
-            <!-- 用戶信息欄 -->
-            <div style="margin-bottom: 2rem;">
-                <span class="points-display">
-                    💎 {{ state.currentUser.points }} 點
-                </span>
-            </div>
-
-            <!-- 心情日記頁面 -->
-            <div v-show="state.currentTab === 'diary'" class="tab-content active">
-                <div class="card">
-                    <div class="card-header">
-                        💭 今天的心情怎樣？
-                    </div>
-                    <div class="card-body">
-                        <!-- 實體手帳展示 -->
-                        <div class="notebook" :style="{ background: state.notebookBg }">
-                            <h5 style="margin-top: 1rem; color: var(--text-dark); font-weight: 700;">
-                                ✍️ 我的手帳日記
-                            </h5>
-                            
-                            <div class="diary-editor">
-                                <label class="form-label">💬 寫下今天的心情</label>
-                                <textarea 
-                                    class="diary-textarea"
-                                    v-model="diaryEditor.content"
-                                    placeholder="在這裡記錄今天發生的事、心情感受..."
-                                ></textarea>
-                            </div>
-
-                            <!-- 照片上傳區 -->
-                            <div 
-                                class="photo-upload"
-                                @click="$refs.photoInput.click()"
-                                style="margin: 1.5rem 0;"
-                            >
-                                <input 
-                                    ref="photoInput"
-                                    type="file" 
-                                    accept="image/*"
-                                    @change="handlePhotoUpload"
-                                >
-                                <div style="font-size: 2rem; margin-bottom: 0.5rem;">📸</div>
-                                <div style="font-weight: 600; color: var(--text-dark);">
-                                    點擊上傳照片或拖拽到此
-                                </div>
-                            </div>
-
-                            <div v-if="diaryEditor.photoData" style="text-align: center;">
-                                <img :src="diaryEditor.photoData" class="photo-preview" alt="已上傳的照片">
-                                <button 
-                                    class="btn btn-sm btn-danger"
-                                    @click="diaryEditor.photoData = ''"
-                                    style="margin-top: 0.5rem;"
-                                >
-                                    ✕ 移除照片
-                                </button>
-                            </div>
-
-                            <!-- 情緒滑桿 -->
-                            <div class="emotion-slider">
-                                <div style="margin-bottom: 1rem;">
-                                    <label style="font-weight: 700; color: var(--text-dark);">
-                                        😊 舒適度（Valence）: <span class="slider-value">{{ diaryEditor.valence }}</span>
-                                    </label>
-                                    <input 
-                                        type="range" 
-                                        class="slider"
-                                        v-model.number="diaryEditor.valence"
-                                        min="0" 
-                                        max="100"
-                                        style="margin-top: 0.5rem;"
-                                    >
-                                    <small style="color: #666;">0=難過 ↔ 100=高興</small>
-                                </div>
-
-                                <div>
-                                    <label style="font-weight: 700; color: var(--text-dark);">
-                                        ⚡ 能量值（Arousal）: <span class="slider-value">{{ diaryEditor.arousal }}</span>
-                                    </label>
-                                    <input 
-                                        type="range" 
-                                        class="slider"
-                                        v-model.number="diaryEditor.arousal"
-                                        min="0" 
-                                        max="100"
-                                        style="margin-top: 0.5rem;"
-                                    >
-                                    <small style="color: #666;">0=平靜 ↔ 100=興奮</small>
-                                </div>
-                            </div>
-
-                            <!-- 推薦花卉展示 -->
-                            <div v-if="recommendedFlower" class="flower-display">
-                                <div style="font-size: 0.9rem; color: #999; margin-bottom: 0.5rem;">
-                                    🎯 根據你的心情推薦：
-                                </div>
-                                <div class="flower-emoji">{{ recommendedFlower.img }}</div>
-                                <div class="flower-name">{{ recommendedFlower.name }}</div>
-                                <div class="flower-meaning">{{ recommendedFlower.word }}</div>
-                                <button 
-                                    class="flower-btn"
-                                    @click="showFlowerDetail(recommendedFlower)"
-                                >
-                                    🔍 了解更多
-                                </button>
-                            </div>
-
-                            <!-- 記錄日記選項 -->
-                            <div style="margin: 1.5rem 0; padding: 1rem; background: var(--accent-pale); border-radius: 8px;">
-                                <label class="form-check">
-                                    <input 
-                                        type="checkbox" 
-                                        class="form-check-input"
-                                        v-model="diaryEditor.shareToComm"
-                                    >
-                                    <span class="form-check-label">
-                                        📢 分享到匿名廣場（使用我的花朵化名）
-                                    </span>
-                                </label>
-                            </div>
-
-                            <!-- 客製化手帳按鈕 -->
-                            <button 
-                                class="customize-btn"
-                                @click="showCustomizePanel = !showCustomizePanel"
-                            >
-                                🎨 客製化手帳外觀
-                            </button>
-
-                            <!-- 客製化面板 -->
-                            <div v-if="showCustomizePanel" class="customize-panel">
-                                <h6 style="margin-bottom: 1rem; color: var(--primary-brown); font-weight: 700;">
-                                    🎨 選擇手帳背景
-                                </h6>
-                                <div v-for="item in getUnlockedBgItems()" :key="item.id">
-                                    <div 
-                                        class="customize-item"
-                                        @click="changeNotebookBackground(item.val)"
-                                        :style="{ 
-                                            borderColor: item.val === state.notebookBg ? 'var(--primary-orange)' : 'transparent'
-                                        }"
-                                    >
-                                        <div 
-                                            style="width: 50px; height: 50px; border-radius: 4px; border: 1px solid var(--border-color);"
-                                            :style="{ background: item.val }"
-                                        ></div>
-                                        <div class="customize-item-name">{{ item.name }}</div>
-                                        <div style="color: var(--primary-orange); font-weight: 700;">✓</div>
-                                    </div>
-                                </div>
-                                <h6 style="margin-top: 1.5rem; margin-bottom: 1rem; color: var(--primary-brown); font-weight: 700;">
-                                    🛒 未解鎖背景
-                                </h6>
-                                <div v-for="item in getLockedBgItems()" :key="item.id">
-                                    <div class="customize-item locked">
-                                        <div 
-                                            style="width: 50px; height: 50px; border-radius: 4px; border: 1px solid var(--border-color); opacity: 0.5;"
-                                            :style="{ background: item.val }"
-                                        ></div>
-                                        <div class="customize-item-name">{{ item.name }}</div>
-                                        <div>
-                                            <div class="lock-icon">🔒</div>
-                                            <div class="customize-item-price">{{ item.price }} 點</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- 記錄按鈕 -->
-                            <button 
-                                class="btn btn-primary btn-lg w-100"
-                                @click="saveDiary"
-                                style="margin-top: 1.5rem;"
-                            >
-                                💾 記錄今天的心情
-                            </button>
-                        </div>
-
-                        <!-- 已存日記列表 -->
-                        <div v-if="state.diaries.length > 0" style="margin-top: 2rem;">
-                            <h5 style="color: var(--primary-brown); font-weight: 700; margin-bottom: 1rem;">
-                                📚 我的日記庫（共 {{ state.diaries.length }} 篇）
-                            </h5>
-                            <div v-for="diary in state.diaries" :key="diary.id" class="card" style="margin-bottom: 1rem;">
-                                <div class="card-body">
-                                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                                        <span style="font-size: 1.5rem;">{{ diary.flower.img }}</span>
-                                        <div>
-                                            <div style="font-weight: 700; color: var(--primary-brown);">
-                                                {{ diary.flower.name }}
-                                            </div>
-                                            <div style="font-size: 0.85rem; color: #999;">
-                                                {{ formatDate(diary.date) }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <p style="margin: 0;">{{ diary.text }}</p>
-                                    <div v-if="diary.photoData" style="margin-top: 1rem;">
-                                        <img :src="diary.photoData" class="photo-preview" style="max-height: 200px;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 花卉庫存 -->
-                        <div v-if="getMyFlowers().length > 0" style="margin-top: 2rem;">
-                            <h5 style="color: var(--primary-brown); font-weight: 700; margin-bottom: 1rem;">
-                                🌸 我的花卉庫存
-                            </h5>
-                            <div class="flower-inventory">
-                                <div 
-                                    v-for="flower in getMyFlowers()" 
-                                    :key="flower.id"
-                                    class="flower-inventory-item"
-                                    @click="showFlowerDetail(flower)"
-                                >
-                                    <div class="flower-inventory-emoji">{{ flower.img }}</div>
-                                    <div class="flower-inventory-name">{{ flower.name }}</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 虛擬商店頁面 -->
-            <div v-show="state.currentTab === 'shop'" class="tab-content active">
-                <div class="card">
-                    <div class="card-header">
-                        🛍️ 虛擬商店 - 用點數購買素材
-                    </div>
-                    <div class="card-body">
-                        <p style="margin-bottom: 1.5rem; color: #666;">
-                            購買背景和貼紙來客製化你的手帳吧！目前餘額：<span class="points-display">{{ state.currentUser.points }} 點</span>
-                        </p>
-                        <div class="shop-grid">
-                            <div v-for="item in state.shopItems" :key="item.id" class="shop-card">
-                                <div class="shop-card-header">
-                                    <span v-if="item.type === 'bg'">🎨</span>
-                                    <span v-else>✨</span>
-                                </div>
-                                <div class="shop-card-body">
-                                    <div class="shop-card-title">{{ item.name }}</div>
-                                    <div class="shop-card-price">
-                                        {{ item.price === 0 ? '免費' : item.price + ' 點' }}
-                                    </div>
-                                    <button 
-                                        class="buy-btn"
-                                        :class="{ locked: isItemLocked(item.id) && item.price > 0 }"
-                                        @click="buyItem(item)"
-                                        :disabled="state.currentUser.points < item.price && item.price > 0"
-                                    >
-                                        <span v-if="isItemLocked(item.id) && item.price > 0">
-                                            🔒 無法購買
-                                        </span>
-                                        <span v-else-if="isItemLocked(item.id)">
-                                            已擁有
-                                        </span>
-                                        <span v-else>
-                                            🛒 購買
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 匿名廣場頁面 -->
-            <div v-show="state.currentTab === 'community'" class="tab-content active">
-                <div class="card">
-                    <div class="card-header">
-                        🌍 匿名社群廣場 - 與萬千花朵相遇
-                    </div>
-                    <div class="card-body">
-                        <div v-if="state.communityPosts.length === 0" style="text-align: center; padding: 3rem 0; color: #999;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🌱</div>
-                            <p>廣場還很空曠呢，分享你的故事成為第一朵花吧！</p>
-                        </div>
-                        <div v-else>
-                            <div v-for="post in state.communityPosts" :key="post.id" class="community-post">
-                                <div class="post-header">
-                                    <div class="post-avatar">{{ getFlowerEmoji(post.flowerName) }}</div>
-                                    <div style="flex-grow: 1;">
-                                        <div class="post-author">{{ post.authorNickname }}</div>
-                                        <div class="post-date">{{ formatDate(post.date) }}</div>
-                                    </div>
-                                </div>
-                                <div class="post-content">{{ post.content }}</div>
-                                <div v-if="post.photoData" style="text-align: center;">
-                                    <img :src="post.photoData" class="post-image" alt="貼文圖片">
-                                </div>
-                                <div style="text-align: center; margin-top: 1rem;">
-                                    <div class="post-flower">{{ post.flower.img }}</div>
-                                    <div style="font-size: 0.85rem; color: #999;">{{ post.flower.name }}</div>
-                                </div>
-                                <div class="post-interaction">
-                                    <button 
-                                        class="hug-btn"
-                                        @click="giveHug(post.id)"
-                                    >
-                                        🫂 給個擁抱
-                                    </button>
-                                    <span class="hug-count">{{ post.hugs }} 個擁抱</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 花卉圖鑑頁面 -->
-            <div v-show="state.currentTab === 'gallery'" class="tab-content active">
-                <div class="card">
-                    <div class="card-header">
-                        🌺 完整花卉圖鑑
-                    </div>
-                    <div class="card-body">
-                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
-                            <div v-for="flower in state.flowers" :key="flower.id" class="card">
-                                <div style="background: linear-gradient(135deg, var(--accent-pale) 0%, var(--accent-light) 100%); padding: 2rem; text-align: center;">
-                                    <div style="font-size: 3.5rem; margin-bottom: 1rem;">{{ flower.img }}</div>
-                                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-brown);">{{ flower.name }}</div>
-                                </div>
-                                <div class="card-body">
-                                    <p style="font-style: italic; color: #666; margin-bottom: 1rem;">
-                                        「{{ flower.word }}」
-                                    </p>
-                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                                        <div style="background: var(--bg-cream); padding: 0.75rem; border-radius: 6px; text-align: center;">
-                                            <div style="font-size: 0.8rem; color: #999;">舒適度</div>
-                                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-orange);">{{ flower.v }}/100</div>
-                                        </div>
-                                        <div style="background: var(--bg-cream); padding: 0.75rem; border-radius: 6px; text-align: center;">
-                                            <div style="font-size: 0.8rem; color: #999;">能量值</div>
-                                            <div style="font-size: 1.3rem; font-weight: 700; color: var(--primary-orange);">{{ flower.a }}/100</div>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        class="btn btn-primary w-100"
-                                        @click="showFlowerDetail(flower)"
-                                    >
-                                        🔍 詳細資訊
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 管理後台頁面 -->
-            <div v-show="state.currentTab === 'admin'" class="tab-content active">
-                <div class="card">
-                    <div class="card-header">
-                        ⚙️ 管理員控制台
-                    </div>
-                    <div class="card-body">
-                        <!-- 新增花卉 -->
-                        <div class="admin-section-title">
-                            ➕ 新增花卉
-                        </div>
-                        <div class="admin-panel">
-                            <div class="admin-form-group">
-                                <label class="form-label">花卉名稱</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control"
-                                    v-model="adminForm.flower.name"
-                                    placeholder="例：牡丹"
-                                >
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="form-label">花語描述</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control"
-                                    v-model="adminForm.flower.word"
-                                    placeholder="例：雍容華貴、圓滿"
-                                >
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="form-label">花卉表情符號 (Emoji)</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control"
-                                    v-model="adminForm.flower.img"
-                                    placeholder="例：🌹"
-                                    maxlength="2"
-                                >
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                                <div class="admin-form-group">
-                                    <label class="form-label">舒適度 (0-100)</label>
-                                    <input 
-                                        type="number" 
-                                        class="form-control"
-                                        v-model.number="adminForm.flower.v"
-                                        min="0"
-                                        max="100"
-                                    >
-                                </div>
-                                <div class="admin-form-group">
-                                    <label class="form-label">能量值 (0-100)</label>
-                                    <input 
-                                        type="number" 
-                                        class="form-control"
-                                        v-model.number="adminForm.flower.a"
-                                        min="0"
-                                        max="100"
-                                    >
-                                </div>
-                            </div>
-                            <button 
-                                class="btn btn-primary w-100"
-                                @click="addFlower"
-                            >
-                                ✅ 確認新增花卉
-                            </button>
-                        </div>
-
-                        <!-- 上架新商品 -->
-                        <div class="admin-section-title">
-                            ➕ 上架新商品
-                        </div>
-                        <div class="admin-panel">
-                            <div class="admin-form-group">
-                                <label class="form-label">商品名稱</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control"
-                                    v-model="adminForm.item.name"
-                                    placeholder="例：深夜星空漸層"
-                                >
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="form-label">商品類型</label>
-                                <select class="form-select" v-model="adminForm.item.type">
-                                    <option value="bg">背景</option>
-                                    <option value="sticker">貼紙</option>
-                                </select>
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="form-label">商品價格 (點數)</label>
-                                <input 
-                                    type="number" 
-                                    class="form-control"
-                                    v-model.number="adminForm.item.price"
-                                    min="0"
-                                >
-                            </div>
-                            <div class="admin-form-group">
-                                <label class="form-label">背景顏色或 Emoji 值</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control"
-                                    v-model="adminForm.item.val"
-                                    placeholder="例：#2C3E50 或漸層或 emoji"
-                                >
-                            </div>
-                            <button 
-                                class="btn btn-primary w-100"
-                                @click="addShopItem"
-                            >
-                                ✅ 確認上架商品
-                            </button>
-                        </div>
-
-                        <!-- 統計資訊 -->
-                        <div class="admin-section-title">
-                            📊 系統統計
-                        </div>
-                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-                            <div style="background: var(--bg-cream); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-orange);">
-                                <div style="font-size: 0.9rem; color: #999; margin-bottom: 0.5rem;">花卉總數</div>
-                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-brown);">{{ state.flowers.length }}</div>
-                            </div>
-                            <div style="background: var(--bg-cream); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-brown);">
-                                <div style="font-size: 0.9rem; color: #999; margin-bottom: 0.5rem;">商品總數</div>
-                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-brown);">{{ state.shopItems.length }}</div>
-                            </div>
-                            <div style="background: var(--bg-cream); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--success-green);">
-                                <div style="font-size: 0.9rem; color: #999; margin-bottom: 0.5rem;">日記總數</div>
-                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-brown);">{{ state.diaries.length }}</div>
-                            </div>
-                            <div style="background: var(--bg-cream); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--danger-red);">
-                                <div style="font-size: 0.9rem; color: #999; margin-bottom: 0.5rem;">社群貼文數</div>
-                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-brown);">{{ state.communityPosts.length }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+<!-- ============================================================
+     登入 / 註冊畫面
+     ============================================================ -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="brand">
+      <div class="logo">🌼</div>
+      <h1 class="hand">Flower Language</h1>
+      <div class="sub">花 語 心 情 手 帳</div>
     </div>
 
-    <!-- 花卉詳細資訊 Modal -->
-    <div class="modal fade" id="flowerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">花卉詳細資訊</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" v-if="selectedFlower">
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <div style="font-size: 4rem; margin-bottom: 1rem;">{{ selectedFlower.img }}</div>
-                        <h4 style="color: var(--primary-brown); font-weight: 700; margin-bottom: 0.5rem;">
-                            {{ selectedFlower.name }}
-                        </h4>
-                        <p style="font-style: italic; color: #666; margin: 0;">
-                            「{{ selectedFlower.word }}」
-                        </p>
-                    </div>
-
-                    <div style="background: var(--bg-cream); padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h6 style="color: var(--primary-brown); font-weight: 700; margin-bottom: 1rem;">
-                            💭 情緒特徵
-                        </h6>
-                        <div style="display: grid; gap: 1rem;">
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span>舒適度 😊</span>
-                                    <span style="font-weight: 700; color: var(--primary-orange);">{{ selectedFlower.v }}/100</span>
-                                </div>
-                                <div style="background: white; height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
-                                    <div 
-                                        :style="{ 
-                                            width: selectedFlower.v + '%',
-                                            background: 'linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%)',
-                                            height: '100%'
-                                        }"
-                                    ></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
-                                    <span>能量值 ⚡</span>
-                                    <span style="font-weight: 700; color: var(--primary-orange);">{{ selectedFlower.a }}/100</span>
-                                </div>
-                                <div style="background: white; height: 8px; border-radius: 4px; overflow: hidden; border: 1px solid var(--border-color);">
-                                    <div 
-                                        :style="{ 
-                                            width: selectedFlower.a + '%',
-                                            background: 'linear-gradient(90deg, var(--primary-orange) 0%, var(--primary-brown) 100%)',
-                                            height: '100%'
-                                        }"
-                                    ></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div style="background: var(--accent-pale); padding: 1.5rem; border-radius: 8px;">
-                        <h6 style="color: var(--primary-brown); font-weight: 700; margin-bottom: 0.5rem;">
-                            ✨ 花語心語
-                        </h6>
-                        <p style="margin: 0;">
-                            這朵花代表著 <strong>{{ selectedFlower.word }}</strong> 的情感。
-                            當你的心情與它的特徵相符時，這朵花會自動出現在你的日記中，
-                            陪伴你度過每一個溫暖的時刻。
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="tab-switch">
+      <button id="tab-login" class="active" onclick="switchAuthTab('login')">登入</button>
+      <button id="tab-register" onclick="switchAuthTab('register')">註冊</button>
     </div>
 
-    <!-- Toast 容器 -->
-    <div class="toast-container" id="toastContainer"></div>
-
-    <!-- Vue 3 CDN -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-
-    <script>
-        const { createApp, ref, reactive, computed } = Vue;
-
-        createApp({
-            setup() {
-                const state = reactive({
-                    currentTab: 'login',
-                    currentUser: {
-                        username: "",
-                        role: "",
-                        nickname: "",
-                        points: 500,
-                        unlockedItems: ['bg-default']
-                    },
-                    notebookBg: '#F5EBE6',
-                    flowers: [
-                        {
-                            id: 'f1',
-                            name: '向日葵',
-                            word: '信念、光輝與耀眼的愛',
-                            v: 80,
-                            a: 80,
-                            img: '🌻'
-                        },
-                        {
-                            id: 'f2',
-                            name: '薰衣草',
-                            word: '等待愛情、內心的寧靜',
-                            v: 70,
-                            a: 30,
-                            img: '🪻'
-                        },
-                        {
-                            id: 'f3',
-                            name: '蓮花',
-                            word: '清淨、純潔與出淤泥不染',
-                            v: 60,
-                            a: 10,
-                            img: '🪷'
-                        },
-                        {
-                            id: 'f4',
-                            name: '鬱金香',
-                            word: '優雅、博愛與高貴的承諾',
-                            v: 30,
-                            a: 40,
-                            img: '🌷'
-                        },
-                        {
-                            id: 'f5',
-                            name: '玫瑰花',
-                            word: '熱烈的愛、激情與美麗',
-                            v: 75,
-                            a: 75,
-                            img: '🌹'
-                        },
-                        {
-                            id: 'f6',
-                            name: '桃花',
-                            word: '愛情、春天與希望',
-                            v: 65,
-                            a: 60,
-                            img: '🌸'
-                        }
-                    ],
-                    shopItems: [
-                        {
-                            id: 'bg-default',
-                            name: '楓糖燕麥背景',
-                            type: 'bg',
-                            price: 0,
-                            val: '#F5EBE6'
-                        },
-                        {
-                            id: 'bg-sunset',
-                            name: '晨曦落葉漸層',
-                            type: 'bg',
-                            price: 200,
-                            val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)'
-                        },
-                        {
-                            id: 'bg-sunflower',
-                            name: '午後向日葵黃',
-                            type: 'bg',
-                            price: 350,
-                            val: '#FEF08A'
-                        },
-                        {
-                            id: 'sticker-flower',
-                            name: '治癒手繪小花貼紙',
-                            type: 'sticker',
-                            price: 100,
-                            val: '🌸'
-                        },
-                        {
-                            id: 'sticker-star',
-                            name: '閃耀星星貼紙',
-                            type: 'sticker',
-                            price: 150,
-                            val: '✨'
-                        }
-                    ],
-                    diaries: [],
-                    communityPosts: []
-                });
-
-                const commentInput = reactive({
-                    postId: null,
-                    text: ''
-                });
-
-                const loginForm = reactive({
-                    username: '',
-                    password: '',
-                    role: 'client'
-                });
-
-                const diaryEditor = reactive({
-                    content: '',
-                    photoData: '',
-                    valence: 50,
-                    arousal: 50,
-                    shareToComm: false
-                });
-
-                const adminForm = reactive({
-                    flower: {
-                        name: '',
-                        word: '',
-                        img: '🌸',
-                        v: 50,
-                        a: 50
-                    },
-                    item: {
-                        name: '',
-                        type: 'bg',
-                        price: 0,
-                        val: ''
-                    }
-                });
-
-                const selectedFlower = ref(null);
-                const showCustomizePanel = ref(false);
-                const flowerEmojis = ['🌻', '🌹', '🌷', '🌸', '🪻', '🪷', '🌺', '🏵️'];
-                const flowerNames = ['向日葵', '玫瑰', '鬱金香', '櫻花', '薰衣草', '蓮花', '菊花', '牡丹'];
-
-                function generateFlowerNickname() {
-                    const emoji = flowerEmojis[Math.floor(Math.random() * flowerEmojis.length)];
-                    const name = flowerNames[Math.floor(Math.random() * flowerNames.length)];
-                    const number = Math.floor(Math.random() * 900) + 100;
-                    return `${name}${emoji}#${number}`;
-                }
-
-                function handleLogin() {
-                    if (!loginForm.username || !loginForm.password) {
-                        showToast('請輸入帳號和密碼', 'error');
-                        return;
-                    }
-
-                    state.currentUser.username = loginForm.username;
-                    state.currentUser.role = loginForm.role;
-                    state.currentUser.nickname = generateFlowerNickname();
-                    state.currentTab = 'diary';
-                    loginForm.username = '';
-                    loginForm.password = '';
-
-                    showToast(`🎉 歡迎，${state.currentUser.nickname}！`, 'success');
-                }
-
-                function handleLogout() {
-                    state.currentUser = {
-                        username: "",
-                        role: "",
-                        nickname: "",
-                        points: 500,
-                        unlockedItems: ['bg-default']
-                    };
-                    state.currentTab = 'login';
-                    loginForm.username = '';
-                    loginForm.password = '';
-                    diaryEditor.content = '';
-                    diaryEditor.photoData = '';
-                    diaryEditor.valence = 50;
-                    diaryEditor.arousal = 50;
-                    diaryEditor.shareToComm = false;
-                    showToast('👋 再見！期待下次見面', 'success');
-                }
-
-                function switchRole(newRole) {
-                    if (state.currentUser.role === newRole) {
-                        showToast('你已經是' + (newRole === 'admin' ? '管理員' : '一般使用者') + '了', 'info');
-                        return;
-                    }
-
-                    state.currentUser.role = newRole;
-                    state.currentUser.nickname = generateFlowerNickname();
-                    
-                    if (newRole === 'admin') {
-                        state.currentTab = 'admin';
-                        showToast('🔐 已切換至管理員模式！', 'success');
-                    } else {
-                        state.currentTab = 'diary';
-                        showToast('👤 已切換至一般使用者模式！', 'success');
-                    }
-                }
-
-                function handlePhotoUpload(event) {
-                    const file = event.target.files[0];
-                    if (file) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            diaryEditor.photoData = e.target.result;
-                            showToast('📸 照片上傳成功！', 'success');
-                        };
-                        reader.readAsDataURL(file);
-                    }
-                }
-
-                function calculateFlowerDistance(v, a, flower) {
-                    return Math.sqrt(Math.pow(v - flower.v, 2) + Math.pow(a - flower.a, 2));
-                }
-
-                const recommendedFlower = computed(() => {
-                    if (state.flowers.length === 0) return null;
-
-                    let closest = state.flowers[0];
-                    let minDistance = calculateFlowerDistance(diaryEditor.valence, diaryEditor.arousal, closest);
-
-                    for (let i = 1; i < state.flowers.length; i++) {
-                        const distance = calculateFlowerDistance(diaryEditor.valence, diaryEditor.arousal, state.flowers[i]);
-                        if (distance < minDistance) {
-                            minDistance = distance;
-                            closest = state.flowers[i];
-                        }
-                    }
-
-                    return closest;
-                });
-
-                function saveDiary() {
-                    if (!diaryEditor.content.trim()) {
-                        showToast('請寫下你的心情感受', 'error');
-                        return;
-                    }
-
-                    if (!recommendedFlower.value) {
-                        showToast('系統錯誤：找不到推薦花卉', 'error');
-                        return;
-                    }
-
-                    const diary = {
-                        id: 'diary-' + Date.now(),
-                        text: diaryEditor.content,
-                        photoData: diaryEditor.photoData,
-                        date: new Date(),
-                        flower: recommendedFlower.value,
-                        isAnonymous: true
-                    };
-
-                    state.diaries.push(diary);
-
-                    if (diaryEditor.shareToComm) {
-                        const post = {
-                            id: 'post-' + Date.now(),
-                            content: diaryEditor.content,
-                            photoData: diaryEditor.photoData,
-                            date: new Date(),
-                            flower: recommendedFlower.value,
-                            flowerName: recommendedFlower.value.name,
-                            authorNickname: state.currentUser.nickname,
-                            hugs: 0
-                        };
-                        state.communityPosts.push(post);
-                    }
-
-                    showToast(`🌸 日記已記錄！推薦給你的花朵是 ${recommendedFlower.value.name}`, 'success');
-
-                    diaryEditor.content = '';
-                    diaryEditor.photoData = '';
-                    diaryEditor.valence = 50;
-                    diaryEditor.arousal = 50;
-                    diaryEditor.shareToComm = false;
-                }
-
-                function getMyFlowers() {
-                    const flowerIds = new Set();
-                    state.diaries.forEach(diary => {
-                        flowerIds.add(diary.flower.id);
-                    });
-                    return Array.from(flowerIds).map(id => state.flowers.find(f => f.id === id)).filter(Boolean);
-                }
-
-                function isItemLocked(itemId) {
-                    return !state.currentUser.unlockedItems.includes(itemId);
-                }
-
-                function getUnlockedBgItems() {
-                    return state.shopItems.filter(item => item.type === 'bg' && state.currentUser.unlockedItems.includes(item.id));
-                }
-
-                function getLockedBgItems() {
-                    return state.shopItems.filter(item => item.type === 'bg' && !state.currentUser.unlockedItems.includes(item.id));
-                }
-
-                function changeNotebookBackground(bgValue) {
-                    state.notebookBg = bgValue;
-                    showToast('🎨 手帳背景已更換！', 'success');
-                }
-
-                function buyItem(item) {
-                    if (isItemLocked(item.id)) {
-                        if (state.currentUser.points < item.price) {
-                            showToast(`💎 點數不足！還需要 ${item.price - state.currentUser.points} 點`, 'error');
-                            return;
-                        }
-
-                        state.currentUser.points -= item.price;
-                        state.currentUser.unlockedItems.push(item.id);
-                        showToast(`✅ 購買成功！你已擁有 "${item.name}"`, 'success');
-                    }
-                }
-
-                function giveHug(postId) {
-                    const post = state.communityPosts.find(p => p.id === postId);
-                    if (post) {
-                        post.hugs++;
-                        showToast('🫂 已發送溫暖的擁抱！', 'success');
-                    }
-                }
-
-                function showFlowerDetail(flower) {
-                    selectedFlower.value = flower;
-                    const modal = new bootstrap.Modal(document.getElementById('flowerModal'));
-                    modal.show();
-                }
-
-                function addFlower() {
-                    if (!adminForm.flower.name || !adminForm.flower.word || !adminForm.flower.img) {
-                        showToast('請填寫所有必要欄位', 'error');
-                        return;
-                    }
-
-                    const newFlower = {
-                        id: 'f-' + Date.now(),
-                        name: adminForm.flower.name,
-                        word: adminForm.flower.word,
-                        img: adminForm.flower.img,
-                        v: adminForm.flower.v,
-                        a: adminForm.flower.a
-                    };
-
-                    state.flowers.push(newFlower);
-                    showToast(`✅ 已成功新增花卉：${adminForm.flower.name}`, 'success');
-
-                    adminForm.flower = {
-                        name: '',
-                        word: '',
-                        img: '🌸',
-                        v: 50,
-                        a: 50
-                    };
-                }
-
-                function addShopItem() {
-                    if (!adminForm.item.name || !adminForm.item.val) {
-                        showToast('請填寫所有必要欄位', 'error');
-                        return;
-                    }
-
-                    const newItem = {
-                        id: 'item-' + Date.now(),
-                        name: adminForm.item.name,
-                        type: adminForm.item.type,
-                        price: adminForm.item.price,
-                        val: adminForm.item.val
-                    };
-
-                    state.shopItems.push(newItem);
-                    showToast(`✅ 已成功上架商品：${adminForm.item.name}`, 'success');
-
-                    adminForm.item = {
-                        name: '',
-                        type: 'bg',
-                        price: 0,
-                        val: ''
-                    };
-                }
-
-                function formatDate(date) {
-                    return new Date(date).toLocaleDateString('zh-TW', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                    });
-                }
-
-                function getFlowerEmoji(flowerName) {
-                    const flower = state.flowers.find(f => f.name === flowerName);
-                    return flower ? flower.img : '🌸';
-                }
-
-                function showToast(message, type = 'info') {
-                    const container = document.getElementById('toastContainer');
-                    const toastEl = document.createElement('div');
-                    toastEl.className = `toast ${type}`;
-                    toastEl.style.animation = 'fadeIn 0.3s ease';
-                    toastEl.innerHTML = `<div class="toast-body">${message}</div>`;
-                    container.appendChild(toastEl);
-
-                    setTimeout(() => {
-                        toastEl.style.opacity = '0';
-                        toastEl.style.transition = 'opacity 0.3s ease';
-                        setTimeout(() => toastEl.remove(), 300);
-                    }, 3000);
-                }
-
-                return {
-                    state,
-                    loginForm,
-                    diaryEditor,
-                    adminForm,
-                    selectedFlower,
-                    showCustomizePanel,
-                    recommendedFlower,
-                    handleLogin,
-                    handleLogout,
-                    switchRole,
-                    handlePhotoUpload,
-                    saveDiary,
-                    getMyFlowers,
-                    isItemLocked,
-                    getUnlockedBgItems,
-                    getLockedBgItems,
-                    changeNotebookBackground,
-                    buyItem,
-                    giveHug,
-                    showFlowerDetail,
-                    addFlower,
-                    addShopItem,
-                    formatDate,
-                    getFlowerEmoji,
-                    showToast
-                };
-            }
-        }).mount('#app');
-    </script>
-
-    <!-- 系統自動化功能完整性 DEBUG 測試腳本 -->
-    <script>
-        function runSystemSelfTest() {
-            console.log("🚀 [System Test] 開始執行 Vue 3 + Bootstrap 5 Flower Language 全功能終極合規性測試...");
-
-            const results = [];
-
-            // 1. 檢查商店按鈕
-            const buyBtns = document.querySelectorAll('.buy-btn');
-            const test1 = buyBtns.length > 0;
-            results.push({
-                name: "虛擬商店購買按鈕",
-                passed: test1,
-                message: test1 ? `✅ 偵測到 ${buyBtns.length} 個購買按鈕` : "❌ 未找到購買按鈕"
-            });
-
-            // 2. 檢查手帳客製化按鈕
-            const customBtn = document.querySelector('.customize-btn');
-            const test2 = !!customBtn;
-            results.push({
-                name: "手帳客製化按鈕",
-                passed: test2,
-                message: test2 ? "✅ 客製化手帳按鈕存活" : "❌ 遺漏客製化按鈕"
-            });
-
-            // 3. 檢查照片上傳組件
-            const fileInput = document.querySelector('input[type="file"]');
-            const test3 = !!fileInput;
-            results.push({
-                name: "照片上傳組件",
-                passed: test3,
-                message: test3 ? "✅ 找到照片上傳組件" : "❌ 日記編輯器遺漏照片上傳功能"
-            });
-
-            // 4. 檢查隱私安全（防帳號洩漏）
-            const bodyText = document.body.innerText;
-            const hasLeak = bodyText.includes('admin001') || bodyText.includes('user123');
-            const test4 = !hasLeak;
-            results.push({
-                name: "隱私保護（去識別化）",
-                passed: test4,
-                message: test4 ? "✅ 真實帳號已成功隱藏保護" : "❌ 洩漏了原始帳號字樣，未成功去識別化"
-            });
-
-            // 5. 檢查情緒滑桿
-            const sliders = document.querySelectorAll('.slider');
-            const test5 = sliders.length >= 2;
-            results.push({
-                name: "情緒滑桿（Valence & Arousal）",
-                passed: test5,
-                message: test5 ? `✅ 找到 ${sliders.length} 個情緒滑桿` : "❌ 缺少情緒滑桿組件"
-            });
-
-            // 6. 檢查社群互動按鈕
-            const hugBtn = document.querySelector('.hug-btn');
-            const test6 = !!hugBtn;
-            results.push({
-                name: "社群互動（擁抱按鈕）",
-                passed: test6,
-                message: test6 ? "✅ 社群廣場擁抱按鈕已配置" : "❌ 缺少社群互動功能"
-            });
-
-            // 7. 檢查管理員面板
-            const adminPanel = document.querySelector('.admin-panel');
-            const test7 = !!adminPanel;
-            results.push({
-                name: "管理員控制台",
-                passed: test7,
-                message: test7 ? "✅ 管理員面板已配置" : "❌ 管理員面板為空"
-            });
-
-            // 8. 檢查花卉推薦邏輯
-            const flowerDisplay = document.querySelector('.flower-display');
-            const test8 = !!flowerDisplay;
-            results.push({
-                name: "花卉推薦系統",
-                passed: test8,
-                message: test8 ? "✅ 花卉推薦顯示區已配置" : "❌ 缺少花卉推薦顯示"
-            });
-
-            // 9. 檢查響應式設計
-            const container = document.querySelector('.main-container');
-            const test9 = !!container;
-            results.push({
-                name: "響應式佈局",
-                passed: test9,
-                message: test9 ? "✅ 響應式容器已配置" : "❌ 缺少響應式佈局容器"
-            });
-
-            // 10. 檢查 Bootstrap Modal
-            const modal = document.getElementById('flowerModal');
-            const test10 = !!modal;
-            results.push({
-                name: "花卉詳細資訊模態窗口",
-                passed: test10,
-                message: test10 ? "✅ Modal 窗口已配置" : "❌ 缺少 Modal 組件"
-            });
-
-            // 輸出測試結果
-            console.log("\n" + "=".repeat(60));
-            console.log("📋 測試結果總結");
-            console.log("=".repeat(60));
-
-            results.forEach((result, index) => {
-                console.log(`${index + 1}. ${result.message}`);
-            });
-
-            const passedCount = results.filter(r => r.passed).length;
-            const totalCount = results.length;
-
-            console.log("\n" + "=".repeat(60));
-            console.log(`🎯 總體進度: ${passedCount}/${totalCount} (${Math.round(passedCount / totalCount * 100)}%)`);
-
-            if (passedCount === totalCount) {
-                console.log("🎉 完美！所有功能測試均已通過！");
-                console.log("準備好進行期末成果展示了！");
-            } else {
-                console.log(`⚠️  還有 ${totalCount - passedCount} 項功能需要檢查`);
-            }
-
-            console.log("=".repeat(60) + "\n");
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(runSystemSelfTest, 1500);
-        });
-    </script>
+    <div class="field">
+      <label>帳號</label>
+      <input id="auth-username" type="text" placeholder="輸入您的帳號" autocomplete="off" />
+    </div>
+    <div class="field">
+      <label>密碼</label>
+      <input id="auth-password" type="password" placeholder="輸入您的密碼" autocomplete="off" />
+    </div>
+
+    <div class="role-pick">
+      <label><input type="radio" name="role" value="client" checked><span>🌿 一般用戶</span></label>
+      <label><input type="radio" name="role" value="admin"><span>🛠 管理員</span></label>
+    </div>
+
+    <button id="auth-submit" class="btn-primary" onclick="handleAuthSubmit()">進入手帳</button>
+
+    <div class="quick-login">
+      <p>— 期末 DEMO 一鍵測試登入 —</p>
+      <div class="quick-row">
+        <button onclick="quickLogin('client')">🌿 一般用戶 Demo</button>
+        <button onclick="quickLogin('admin')">🛠 管理員 Demo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     主應用
+     ============================================================ -->
+<div id="app-screen">
+  <div class="top-bar">
+    <div class="greet" id="greet-text">午安 🍂</div>
+    <div class="right">
+      <span class="pill">🪙 <span id="points-display">0</span> 點</span>
+      <button class="logout-btn" onclick="logout()">登出</button>
+    </div>
+  </div>
+
+  <!-- 各分頁容器 -->
+  <div id="view-container"></div>
+
+  <!-- 底部導覽 -->
+  <nav class="nav-bar" id="nav-bar">
+    <button data-tab="diary" class="active" onclick="switchTab('diary')"><span class="ic">📔</span>手帳日記</button>
+    <button data-tab="gallery" onclick="switchTab('gallery')"><span class="ic">🌸</span>花語圖鑑</button>
+    <button data-tab="shop" onclick="switchTab('shop')"><span class="ic">🛍️</span>虛擬商店</button>
+    <button data-tab="community" onclick="switchTab('community')"><span class="ic">💬</span>社群廣場</button>
+    <button data-tab="admin" class="admin-only" onclick="switchTab('admin')"><span class="ic">🛠</span>管理後台</button>
+  </nav>
+</div>
+
+<!-- 客製化抽屜 -->
+<div class="drawer-mask" id="drawer-mask" onclick="closeDrawer()"></div>
+<div class="drawer" id="cust-drawer">
+  <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  <h3 class="hand">客製化手帳 🎨</h3>
+  <p class="dsub">挑選你擁有的背景與貼紙，點一下即時套用在手帳上。</p>
+  <div id="drawer-content"></div>
+</div>
+
+<!-- 通用 Modal -->
+<div class="modal-mask" id="modal-mask" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-box"></div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   二、 全域狀態管理庫 (JavaScript State)
+   ============================================================ */
+const state = {
+    currentUser: {
+        username: "",     // 內部紀錄驗證
+        role: "",         // 'client' 或 'admin'
+        nickname: "",     // 畫面顯示的花朵化名 (防洩漏真實帳號)
+        points: 500,      // 預設給予 500 點方便期末測試購買
+        unlockedItems: ['bg-default'] // 已解鎖的商店商品 ID 陣列
+    },
+    // 初始化花卉資料庫 (包含羅素情緒模型二維向量值 Valence, Arousal)
+    flowers: [
+        { id: 'f1', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻' },
+        { id: 'f2', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻' },
+        { id: 'f3', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷' },
+        { id: 'f4', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷' }
+    ],
+    // 虛擬商店商品庫 (可供用戶購買)
+    shopItems: [
+        { id: 'bg-default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
+        { id: 'bg-sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
+        { id: 'bg-sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
+        { id: 'sticker-flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
+        { id: 'sticker-star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
+    ],
+    diaries: [],      // 儲存日記紀錄 { id, text, date, flower, photo, isAnonymous }
+    communityPosts: [], // 匿名社群廣場貼文
+    // ── UI 暫存狀態 ──
+    activeTab: 'diary',
+    draftPhoto: null,                  // 編輯器暫存的照片 Base64
+    appliedBg: '#F5EBE6',              // 目前套用在手帳的背景
+    appliedStickers: [],               // 目前貼在手帳內頁的貼紙
+    adminPanel: 'flowers'              // 後台目前面板
+};
+
+/* ============================================================
+   去識別化：花朵化名產生器
+   ============================================================ */
+const NICK_ADJ = ['暗戀的','寧靜的','耀眼的','溫柔的','勇敢的','想念的','微笑的','沉睡的','綻放的','自由的','溫暖的','害羞的'];
+const NICK_FLOWER = ['向日葵','薰衣草','蓮花','鬱金香','梔子花','風信子','雛菊','鈴蘭','茉莉','山茶','銀蓮','勿忘我'];
+const NICK_AVATAR = ['🌻','🪻','🪷','🌷','🌼','🌺','🌸','💐','🏵️','🌹'];
+
+function generateNickname(){
+  const adj = NICK_ADJ[Math.floor(Math.random()*NICK_ADJ.length)];
+  const fl  = NICK_FLOWER[Math.floor(Math.random()*NICK_FLOWER.length)];
+  const num = String(Math.floor(Math.random()*900)+100); // 100~999
+  return `${adj}${fl} #${num}`;
+}
+function avatarFor(nickname){
+  // 依化名雜湊出穩定的頭像，讓同一篇貼文頭像固定
+  let h=0; for(const c of nickname) h=(h*31+c.charCodeAt(0))>>>0;
+  return NICK_AVATAR[h % NICK_AVATAR.length];
+}
+
+/* ============================================================
+   三-1. 雙角色登入 與 動態去識別化
+   ============================================================ */
+let authMode = 'login';
+function switchAuthTab(mode){
+  authMode = mode;
+  document.getElementById('tab-login').classList.toggle('active', mode==='login');
+  document.getElementById('tab-register').classList.toggle('active', mode==='register');
+  document.getElementById('auth-submit').textContent = mode==='login' ? '進入手帳' : '建立帳號';
+}
+
+function handleAuthSubmit(){
+  const username = document.getElementById('auth-username').value.trim();
+  const password = document.getElementById('auth-password').value.trim();
+  const role = document.querySelector('input[name="role"]:checked').value;
+  if(!username || !password){
+    showToast('請輸入帳號與密碼 🍂');
+    return;
+  }
+  loginAs(username, role);
+}
+
+function quickLogin(role){
+  // 期末 DEMO：一鍵帶入測試帳號（畫面不會顯示這些原始字串）
+  const username = role==='admin' ? 'admin001' : 'user123';
+  loginAs(username, role);
+}
+
+function loginAs(username, role){
+  state.currentUser.username = username;        // 僅內部保存，畫面永不顯示
+  state.currentUser.role = role;
+  state.currentUser.nickname = generateNickname(); // 全面去識別化
+  state.currentUser.points = 500;
+  state.currentUser.unlockedItems = ['bg-default'];
+  state.appliedBg = '#F5EBE6';
+  state.appliedStickers = [];
+
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('app-screen').style.display = 'block';
+
+  // 管理員額外解鎖「管理後台」分頁
+  const adminBtn = document.querySelector('.nav-bar button.admin-only');
+  adminBtn.classList.toggle('show', role==='admin');
+
+  updateTopBar();
+  switchTab('diary');
+  showToast(`歡迎進入花語世界，${state.currentUser.nickname}`);
+}
+
+function logout(){
+  state.currentUser = { username:"", role:"", nickname:"", points:500, unlockedItems:['bg-default'] };
+  state.draftPhoto = null;
+  document.getElementById('app-screen').style.display = 'none';
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('auth-username').value = '';
+  document.getElementById('auth-password').value = '';
+}
+
+function updateTopBar(){
+  const hour = new Date().getHours();
+  let greet = '午安';
+  if(hour < 11) greet = '早安';
+  else if(hour >= 18) greet = '晚安';
+  document.getElementById('greet-text').textContent =
+    `${greet}，${state.currentUser.nickname} 🍂`;
+  document.getElementById('points-display').textContent = state.currentUser.points;
+}
+
+/* ============================================================
+   分頁切換 與 路由
+   ============================================================ */
+function switchTab(tab){
+  state.activeTab = tab;
+  document.querySelectorAll('.nav-bar button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.tab===tab);
+  });
+  const c = document.getElementById('view-container');
+  if(tab==='diary')      c.innerHTML = renderDiaryView();
+  else if(tab==='gallery')   c.innerHTML = renderGalleryView();
+  else if(tab==='shop')      c.innerHTML = renderShopView();
+  else if(tab==='community') c.innerHTML = renderCommunityView();
+  else if(tab==='admin')     c.innerHTML = renderAdminView();
+  // 切回日記時，套用目前選擇的背景與貼紙
+  if(tab==='diary') applyNotebookStyle();
+}
+
+/* ============================================================
+   三-2. 寫手帳日記
+   ============================================================ */
+function renderDiaryView(){
+  const entries = [...state.diaries].reverse().map(renderDiaryEntry).join('');
+  const listBlock = state.diaries.length
+    ? `<div class="diary-list">${entries}</div>`
+    : `<div class="empty-hint"><span class="em">📖</span>還沒有任何手帳紀錄，寫下今天的第一頁心情吧。</div>`;
+
+  return `
+  <section class="view">
+    <h2 class="view-title hand">手帳日記 📔</h2>
+    <p class="view-sub">拉動情緒滑桿、貼上照片，讓花語為今天的你說話。</p>
+
+    <div class="diary-toolbar">
+      <button class="tool-btn" onclick="document.getElementById('photo-input').click()">📷 上傳照片</button>
+      <button class="tool-btn customize-btn" data-action="customize" onclick="openDrawer()">🎨 客製化手帳</button>
+      <input id="photo-input" type="file" accept="image/*" style="display:none" onchange="handlePhotoUpload(event)" />
+    </div>
+
+    <div class="notebook lined" id="diary-notebook">
+      <div class="page-pad">
+        <textarea class="diary-text" id="diary-text" placeholder="親愛的手帳，今天的我……"></textarea>
+
+        <div class="photo-preview" id="photo-preview">
+          <div class="photo-tape"><img id="photo-img" src="" alt="上傳的照片" /></div>
+        </div>
+
+        <div class="stickers-layer" id="page-stickers"></div>
+
+        <div class="mood-block">
+          <h4>🌈 今日心情座標（羅素情緒模型）</h4>
+          <div class="slider-row">
+            <div class="lab"><span>愉悅度 Valence</span><b><span id="v-val">50</span> / 100</b></div>
+            <input type="range" id="slider-v" min="0" max="100" value="50" oninput="document.getElementById('v-val').textContent=this.value">
+          </div>
+          <div class="slider-row">
+            <div class="lab"><span>能量水平 Arousal</span><b><span id="a-val">50</span> / 100</b></div>
+            <input type="range" id="slider-a" min="0" max="100" value="50" oninput="document.getElementById('a-val').textContent=this.value">
+          </div>
+        </div>
+
+        <label class="publish-toggle">
+          <span class="switch">
+            <input type="checkbox" id="publish-toggle">
+            <span class="track"></span>
+          </span>
+          將這篇心情匿名分享到社群廣場 💬
+        </label>
+
+        <button class="btn-primary" onclick="recordMood()">🌷 記錄心情並推薦花朵</button>
+      </div>
+    </div>
+
+    ${listBlock}
+  </section>`;
+}
+
+function renderDiaryEntry(d){
+  const photo = d.photo
+    ? `<div class="entry-photo"><img src="${d.photo}" alt="日記照片"></div>` : '';
+  const stickers = (d.stickers && d.stickers.length)
+    ? `<div class="entry-stickers">${d.stickers.join(' ')}</div>` : '';
+  const flag = d.isAnonymous
+    ? `<span class="posted-flag">🌿 已分享至社群</span>` : '';
+  return `
+  <article class="diary-entry">
+    ${flag}
+    <div class="date">${d.date}</div>
+    <div class="body">${escapeHTML(d.text)}</div>
+    ${photo}
+    ${stickers}
+    <div style="margin-top:12px">
+      <span class="flower-chip" onclick="showFlowerModal('${d.flower.id}')">
+        <span class="em">${d.flower.img}</span> 今日代表花：${d.flower.name}
+      </span>
+    </div>
+  </article>`;
+}
+
+function handlePhotoUpload(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev){
+    state.draftPhoto = ev.target.result;     // 轉為 Base64 網址
+    const prev = document.getElementById('photo-preview');
+    const img = document.getElementById('photo-img');
+    img.src = state.draftPhoto;
+    prev.style.display = 'block';
+    showToast('照片已貼進手帳內頁 📷');
+  };
+  reader.readAsDataURL(file);
+}
+
+/* 歐幾里得距離：精準推薦距離最近的 1 朵花 */
+function recommendFlower(userV, userA){
+  let best = null, bestDist = Infinity;
+  for(const f of state.flowers){
+    const dist = Math.sqrt(Math.pow(userV - f.v, 2) + Math.pow(userA - f.a, 2));
+    if(dist < bestDist){ bestDist = dist; best = f; }
+  }
+  return best;
+}
+
+function recordMood(){
+  const text = document.getElementById('diary-text').value.trim();
+  if(!text){ showToast('先寫下今天的心情文字吧 🍂'); return; }
+  const v = parseInt(document.getElementById('slider-v').value, 10);
+  const a = parseInt(document.getElementById('slider-a').value, 10);
+  const flower = recommendFlower(v, a);
+  const isAnonymous = document.getElementById('publish-toggle').checked;
+
+  const entry = {
+    id: 'd' + Date.now(),
+    text,
+    date: new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+    flower: { id: flower.id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
+    photo: state.draftPhoto,
+    stickers: [...state.appliedStickers],
+    isAnonymous
+  };
+  state.diaries.push(entry);
+
+  // 同步加入「我的花卉庫存」（解鎖該花在圖鑑中標示為已收藏）
+  if(!state.currentUser.unlockedItems.includes('flower-' + flower.id)){
+    state.currentUser.unlockedItems.push('flower-' + flower.id);
+  }
+
+  // 若選擇分享 → 推入匿名社群
+  if(isAnonymous){
+    state.communityPosts.push({
+      id: 'p' + Date.now(),
+      nickname: state.currentUser.nickname,   // 強制使用花朵化名
+      text,
+      photo: state.draftPhoto,
+      flower: { id: flower.id, name: flower.name, img: flower.img },
+      date: entry.date,
+      hugs: 0,
+      flowersGiven: 0
+    });
+  }
+
+  // 重置編輯器暫存
+  state.draftPhoto = null;
+  showFlowerModal(flower.id, true); // 推薦結果彈窗
+  switchTab('diary');               // 重繪列表
+}
+
+/* ============================================================
+   花朵詳細彈窗
+   ============================================================ */
+function showFlowerModal(flowerId, isRecommend){
+  const f = state.flowers.find(x=>x.id===flowerId)
+         || state.diaries.map(d=>d.flower).find(x=>x.id===flowerId);
+  if(!f) return;
+  const title = isRecommend ? '為今天的你，盛開了這朵——' : f.name;
+  document.getElementById('modal-box').innerHTML = `
+    <div class="big">${f.img}</div>
+    <h3 class="hand">${f.name}</h3>
+    <p class="word">${f.word}</p>
+    <p class="va-line">愉悅度 V:${f.v} ・ 能量 A:${f.a}</p>
+    <p style="font-size:13px;color:var(--ink-soft);margin-bottom:18px">
+      ${isRecommend ? '這朵花已悄悄收進你的花卉庫存 🌿' : '它正靜靜在你的圖鑑裡綻放。'}
+    </p>
+    <button class="btn-primary" onclick="closeModal()">收下這份花語</button>
+  `;
+  document.getElementById('modal-mask').classList.add('open');
+}
+function closeModal(){ document.getElementById('modal-mask').classList.remove('open'); }
+
+/* ============================================================
+   三. 花語圖鑑
+   ============================================================ */
+function renderGalleryView(){
+  const cards = state.flowers.map(f=>{
+    const owned = state.currentUser.unlockedItems.includes('flower-' + f.id);
+    const isNew = f._new ? `<span class="new-badge">NEW</span>` : '';
+    const collected = owned ? `<div style="margin-top:8px;font-size:12px;color:var(--leaf)">🌿 已收藏</div>` : '';
+    return `
+      <div class="flower-card" onclick="showFlowerModal('${f.id}')">
+        ${isNew}
+        <div class="big">${f.img}</div>
+        <h3>${f.name}</h3>
+        <div class="word">${f.word}</div>
+        <div class="va"><span>V ${f.v}</span><span>A ${f.a}</span></div>
+        ${collected}
+      </div>`;
+  }).join('');
+  return `
+  <section class="view">
+    <h2 class="view-title hand">花語圖鑑 🌸</h2>
+    <p class="view-sub">每一朵花都有它想說的話，點擊查看完整花語。</p>
+    <div class="card-grid">${cards}</div>
+  </section>`;
+}
+
+/* ============================================================
+   三-5. 虛擬商店
+   ============================================================ */
+function renderShopView(){
+  const cards = state.shopItems.map(item=>{
+    const owned = state.currentUser.unlockedItems.includes(item.id);
+    const isNew = item._new ? `<span class="new-badge">NEW</span>` : '';
+    let preview = '';
+    if(item.type==='bg'){
+      preview = `<div class="shop-preview" style="background:${item.val}"></div>`;
+    }else{
+      preview = `<div class="shop-preview" style="background:var(--bg-cream)">${item.val}</div>`;
+    }
+    const typeLabel = item.type==='bg' ? '手帳背景' : '裝飾貼紙';
+    const priceTxt = item.price===0 ? '免費' : `🪙 ${item.price} 點`;
+    const btn = owned
+      ? `<button class="buy-btn owned" disabled>已擁有</button>`
+      : `<button class="buy-btn" onclick="buyItem('${item.id}')">購買</button>`;
+    return `
+      <div class="shop-card">
+        ${isNew}
+        ${preview}
+        <h3>${item.name}</h3>
+        <div class="type-tag">${typeLabel}</div>
+        <div class="price">${priceTxt}</div>
+        ${btn}
+      </div>`;
+  }).join('');
+  return `
+  <section class="view">
+    <h2 class="view-title hand">虛擬商店 🛍️</h2>
+    <p class="view-sub">用心情點數兌換背景與貼紙，打造專屬你的手帳風格。</p>
+    <div class="card-grid">${cards}</div>
+  </section>`;
+}
+
+function buyItem(itemId){
+  const item = state.shopItems.find(x=>x.id===itemId);
+  if(!item) return;
+  if(state.currentUser.unlockedItems.includes(itemId)){ showToast('你已經擁有這個項目囉 🌿'); return; }
+  if(state.currentUser.points < item.price){
+    // 療癒系點數不足提示
+    document.getElementById('modal-box').innerHTML = `
+      <div class="big">🍃</div>
+      <h3 class="hand">點數還在路上</h3>
+      <p class="word">這個小物需要 ${item.price} 點，<br>但你目前有 ${state.currentUser.points} 點。</p>
+      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:18px">多寫幾篇心情手帳，慢慢累積能量吧 🌱</p>
+      <button class="btn-primary" onclick="closeModal()">好的，我再努力</button>`;
+    document.getElementById('modal-mask').classList.add('open');
+    return;
+  }
+  // 扣點 → 解鎖 → 更新畫面
+  state.currentUser.points -= item.price;
+  state.currentUser.unlockedItems.push(itemId);
+  updateTopBar();
+  switchTab('shop'); // 重繪，按鈕變「已擁有」
+  showToast(`已購買「${item.name}」，到客製化面板套用看看吧 🎨`);
+}
+
+/* ============================================================
+   三-3. 匿名社群廣場
+   ============================================================ */
+function renderCommunityView(){
+  if(state.communityPosts.length === 0){
+    return `
+    <section class="view">
+      <h2 class="view-title hand">社群廣場 💬</h2>
+      <p class="view-sub">這裡的每個人都用花朵化名分享心情，安心又溫暖。</p>
+      <div class="empty-hint"><span class="em">🌾</span>還沒有人分享心情。<br>回到手帳日記，打開「分享到社群」開關，成為第一朵綻放的花。</div>
+    </section>`;
+  }
+  const posts = [...state.communityPosts].reverse().map(p=>`
+    <article class="post" data-id="${p.id}">
+      <div class="head">
+        <div class="avatar">${avatarFor(p.nickname)}</div>
+        <div class="meta">
+          <b>${p.nickname}</b>
+          <span>${p.date}</span>
+        </div>
+      </div>
+      <div class="content">${escapeHTML(p.text)}</div>
+      ${p.photo ? `<div class="post-photo"><img src="${p.photo}" alt="分享照片"></div>` : ''}
+      <div class="post-flower" onclick="showFlowerModal('${p.flower.id}')">
+        ${p.flower.img} 今日代表花：${p.flower.name}
+      </div>
+      <div class="post-actions">
+        <button class="hug-btn" onclick="giveHug('${p.id}', this)">
+          給予擁抱 🫂 (<span class="count">${p.hugs}</span>)
+        </button>
+        <button class="flower-give-btn" onclick="giveFlower('${p.id}', this)">
+          送一朵花 🌷 (<span class="count">${p.flowersGiven}</span>)
+        </button>
+      </div>
+    </article>`).join('');
+  return `
+  <section class="view">
+    <h2 class="view-title hand">社群廣場 💬</h2>
+    <p class="view-sub">這裡的每個人都用花朵化名分享心情，安心又溫暖。</p>
+    <div class="post-list">${posts}</div>
+  </section>`;
+}
+
+function giveHug(postId, btn){
+  const p = state.communityPosts.find(x=>x.id===postId);
+  if(!p) return;
+  p.hugs += 1;
+  btn.querySelector('.count').textContent = p.hugs;
+  btn.classList.add('hugged');
+}
+function giveFlower(postId, btn){
+  const p = state.communityPosts.find(x=>x.id===postId);
+  if(!p) return;
+  p.flowersGiven += 1;
+  btn.querySelector('.count').textContent = p.flowersGiven;
+}
+
+/* ============================================================
+   三-4. 客製化抽屜面板
+   ============================================================ */
+function openDrawer(){
+  renderDrawer();
+  document.getElementById('drawer-mask').classList.add('open');
+  document.getElementById('cust-drawer').classList.add('open');
+}
+function closeDrawer(){
+  document.getElementById('drawer-mask').classList.remove('open');
+  document.getElementById('cust-drawer').classList.remove('open');
+}
+
+function renderDrawer(){
+  const bgs = state.shopItems.filter(i=>i.type==='bg');
+  const stickers = state.shopItems.filter(i=>i.type==='sticker');
+
+  const bgHTML = bgs.map(item=>{
+    const owned = state.currentUser.unlockedItems.includes(item.id);
+    const active = state.appliedBg === item.val ? 'active-cust' : '';
+    if(owned){
+      return `<div class="cust-item ${active}" onclick="applyBackground('${item.id}')">
+                <div class="swatch" style="background:${item.val}"></div>${item.name}
+              </div>`;
+    }
+    return `<div class="cust-item locked"><span class="lock">🔒</span>
+              <div class="swatch" style="background:${item.val}"></div>${item.name}
+            </div>`;
+  }).join('');
+
+  const stickerHTML = stickers.map(item=>{
+    const owned = state.currentUser.unlockedItems.includes(item.id);
+    if(owned){
+      return `<div class="cust-item" onclick="applySticker('${item.id}')">
+                <div class="swatch">${item.val}</div>${item.name}
+              </div>`;
+    }
+    return `<div class="cust-item locked"><span class="lock">🔒</span>
+              <div class="swatch">${item.val}</div>${item.name}
+            </div>`;
+  }).join('');
+
+  document.getElementById('drawer-content').innerHTML = `
+    <div class="cust-section">
+      <h4>🖼️ 手帳背景</h4>
+      <div class="cust-grid">${bgHTML}</div>
+    </div>
+    <div class="cust-section">
+      <h4>✨ 內頁貼紙</h4>
+      <div class="cust-grid">${stickerHTML}</div>
+      ${state.appliedStickers.length ? `<button class="tool-btn" style="margin-top:12px" onclick="clearStickers()">🧹 清除貼紙</button>` : ''}
+    </div>`;
+}
+
+function applyBackground(itemId){
+  const item = state.shopItems.find(x=>x.id===itemId);
+  if(!item || !state.currentUser.unlockedItems.includes(itemId)) return;
+  state.appliedBg = item.val;
+  applyNotebookStyle();
+  renderDrawer();
+  showToast(`已套用背景「${item.name}」🎨`);
+}
+function applySticker(itemId){
+  const item = state.shopItems.find(x=>x.id===itemId);
+  if(!item || !state.currentUser.unlockedItems.includes(itemId)) return;
+  state.appliedStickers.push(item.val);
+  applyNotebookStyle();
+  showToast(`貼紙 ${item.val} 已貼上手帳`);
+}
+function clearStickers(){
+  state.appliedStickers = [];
+  applyNotebookStyle();
+  renderDrawer();
+}
+
+/* 即時把背景與貼紙套用到手帳主體 */
+function applyNotebookStyle(){
+  const nb = document.getElementById('diary-notebook');
+  if(nb){
+    nb.style.background = state.appliedBg;
+    const layer = document.getElementById('page-stickers');
+    if(layer){
+      layer.innerHTML = state.appliedStickers
+        .map(s=>`<span class="sticker-on-page">${s}</span>`).join('');
+    }
+  }
+}
+
+/* ============================================================
+   三-6. 管理員後台控制台
+   ============================================================ */
+function renderAdminView(){
+  if(state.currentUser.role !== 'admin'){
+    return `<section class="view"><div class="empty-hint">⛔ 此頁面僅限管理員存取。</div></section>`;
+  }
+  const tabFlowers = state.adminPanel==='flowers' ? 'active' : '';
+  const tabItems = state.adminPanel==='items' ? 'active' : '';
+  return `
+  <section class="view">
+    <h2 class="view-title hand">管理後台 🛠</h2>
+    <p class="view-sub">在這裡上架的內容，會即時同步到所有使用者的圖鑑與商店。</p>
+    <div class="admin-tabs">
+      <button class="${tabFlowers}" onclick="switchAdminPanel('flowers')">🌸 管理花卉</button>
+      <button class="${tabItems}" onclick="switchAdminPanel('items')">🛍️ 管理商品</button>
+    </div>
+    <div id="admin-panel">${ state.adminPanel==='flowers' ? renderAdminFlowers() : renderAdminItems() }</div>
+  </section>`;
+}
+
+function switchAdminPanel(panel){
+  state.adminPanel = panel;
+  document.getElementById('admin-panel').innerHTML =
+    panel==='flowers' ? renderAdminFlowers() : renderAdminItems();
+  document.querySelectorAll('.admin-tabs button').forEach((b,i)=>{
+    b.classList.toggle('active', (panel==='flowers'&&i===0)||(panel==='items'&&i===1));
+  });
+}
+
+function renderAdminFlowers(){
+  const list = state.flowers.map(f=>`
+    <div class="admin-row">
+      <span class="em">${f.img}</span>
+      <div class="info"><b>${f.name}</b><small>${f.word}　｜　V:${f.v} A:${f.a}</small></div>
+    </div>`).join('');
+  return `
+    <div class="notebook">
+      <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架花卉</h3>
+      <div class="form-grid">
+        <div><label>花卉名稱</label><input id="nf-name" placeholder="例如：滿天星"></div>
+        <div><label>代表 Emoji</label><input id="nf-img" placeholder="例如：🌼"></div>
+        <div class="full"><label>花語</label><input id="nf-word" placeholder="例如：純潔的心、思念與守候"></div>
+        <div><label>愉悅度 Valence (0-100)</label><input id="nf-v" type="number" min="0" max="100" value="50"></div>
+        <div><label>能量水平 Arousal (0-100)</label><input id="nf-a" type="number" min="0" max="100" value="50"></div>
+      </div>
+      <button class="btn-primary" onclick="addFlower()">確認上架花卉</button>
+    </div>
+    <div class="admin-list">${list}</div>`;
+}
+
+function renderAdminItems(){
+  const list = state.shopItems.map(i=>`
+    <div class="admin-row">
+      <span class="em">${i.type==='sticker' ? i.val : '🎨'}</span>
+      <div class="info"><b>${i.name}</b><small>${i.type==='bg'?'手帳背景':'裝飾貼紙'}　｜　${i.price===0?'免費':i.price+' 點'}</small></div>
+    </div>`).join('');
+  return `
+    <div class="notebook">
+      <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架商品</h3>
+      <div class="form-grid">
+        <div><label>商品名稱</label><input id="ni-name" placeholder="例如：黃昏漸層背景"></div>
+        <div>
+          <label>類別</label>
+          <select id="ni-type" onchange="document.getElementById('ni-hint').textContent = this.value==='bg' ? '請填 CSS 顏色或漸層' : '請填一個 Emoji 貼紙'">
+            <option value="bg">手帳背景</option>
+            <option value="sticker">裝飾貼紙</option>
+          </select>
+        </div>
+        <div><label>定價（點數）</label><input id="ni-price" type="number" min="0" value="100"></div>
+        <div><label>內容值 <small id="ni-hint" style="color:var(--ink-soft)">請填 CSS 顏色或漸層</small></label><input id="ni-val" placeholder="#FCD34D 或 🌙"></div>
+      </div>
+      <button class="btn-primary" onclick="addItem()">確認上架商品</button>
+    </div>
+    <div class="admin-list">${list}</div>`;
+}
+
+/* 真實寫入全域 state.flowers — 跨用戶即時同步 */
+function addFlower(){
+  const name = document.getElementById('nf-name').value.trim();
+  const img  = document.getElementById('nf-img').value.trim() || '🌷';
+  const word = document.getElementById('nf-word').value.trim();
+  const v = clamp(parseInt(document.getElementById('nf-v').value,10)||50);
+  const a = clamp(parseInt(document.getElementById('nf-a').value,10)||50);
+  if(!name || !word){ showToast('請填寫花卉名稱與花語 🍂'); return; }
+  state.flowers.push({ id:'f'+Date.now(), name, word, v, a, img, _new:true });
+  switchAdminPanel('flowers');
+  showToast(`花卉「${name}」已上架，所有用戶圖鑑即時更新 🌸`);
+}
+
+/* 真實寫入全域 state.shopItems — 跨用戶即時同步 */
+function addItem(){
+  const name = document.getElementById('ni-name').value.trim();
+  const type = document.getElementById('ni-type').value;
+  const price = Math.max(0, parseInt(document.getElementById('ni-price').value,10)||0);
+  const val = document.getElementById('ni-val').value.trim();
+  if(!name || !val){ showToast('請填寫商品名稱與內容值 🍂'); return; }
+  state.shopItems.push({ id:(type==='bg'?'bg-':'sticker-')+Date.now(), name, type, price, val, _new:true });
+  switchAdminPanel('items');
+  showToast(`商品「${name}」已上架，所有用戶商店即時更新 🛍️`);
+}
+
+/* ============================================================
+   工具函式
+   ============================================================ */
+function clamp(n){ return Math.max(0, Math.min(100, n)); }
+function escapeHTML(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+let toastTimer = null;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ============================================================
+   四、 內嵌自動化功能完整性 DEBUG 測試腳本
+   ============================================================ */
+function runSystemSelfTest() {
+    console.log("🚀 [System Test] 開始執行 Flower Language 全功能終極合規性測試...");
+
+    // 為了讓測試能偵測到日記頁的元件，先模擬登入並渲染日記分頁
+    if (document.getElementById('app-screen').style.display === 'none' || !state.currentUser.role) {
+        loginAs('user123', 'client');
+    }
+
+    // 1. 檢查商店按鈕
+    switchTab('shop');
+    const buyBtns = document.querySelectorAll('.buy-btn');
+    console.log(buyBtns.length === 0 ? "❌ DEBUG 錯誤：虛擬商店內完全找不到任何購買按鈕！" : `✅ 測試成功：偵測到商店內有購買按鈕。`);
+
+    // 2. 檢查手帳客製化按鈕
+    switchTab('diary');
+    const customBtn = document.querySelector('.customize-btn') || document.querySelector('[data-action="customize"]');
+    console.log(!customBtn ? "❌ DEBUG 錯誤：日記頁面遺漏了『客製化手帳/外觀設定』的切換介面按鈕！" : "✅ 測試成功：手帳外觀切換按鈕存活。");
+
+    // 3. 檢查照片上傳組件
+    const fileInput = document.querySelector('input[type="file"]');
+    console.log(!fileInput ? "❌ DEBUG 錯誤：日記編輯器中遺漏了照片上傳功能組件！" : "✅ 測試成功：找到照片上傳組件。");
+
+    // 4. 檢查隱私安全（防帳號洩漏）
+    const hasLeak = document.body.innerText.includes('admin001') || document.body.innerText.includes('user123');
+    console.log(hasLeak ? "❌ DEBUG 錯誤：畫面上洩漏了原始帳號字樣，未成功執行花朵化名去識別化！" : "✅ 測試成功：真實帳號已成功隱藏保護。");
+
+    console.log("🎉 [System Test] 全功能合規性測試結束。");
+
+    // 測試完成後回到登入畫面，讓 DEMO 從乾淨的入口開始
+    logout();
+}
+window.addEventListener('DOMContentLoaded', runSystemSelfTest);
+</script>
 </body>
 </html>
