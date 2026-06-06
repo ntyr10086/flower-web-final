@@ -113,7 +113,7 @@ img{max-width:100%;display:block}
 /* ============================================================
    主應用框架
    ============================================================ */
-#app-screen{display:none;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
+#app-screen{display:block;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
 .top-bar{
   position:sticky;top:0;z-index:20;
   display:flex;align-items:center;justify-content:space-between;
@@ -479,7 +479,7 @@ input[type=range]::-moz-range-thumb{
   <!-- ============================================================
        主應用
        ============================================================ -->
-  <div id="app-screen" v-if="currentUser.role" :style="{ display: currentUser.role ? 'block' : 'none' }">
+  <div id="app-screen" v-if="currentUser.role">
     <div class="top-bar">
       <div class="greet">{{ greetText }}，{{ currentUser.nickname }} 🍂</div>
       <div class="right">
@@ -494,7 +494,7 @@ input[type=range]::-moz-range-thumb{
       <p class="view-sub">拉動情緒滑桿、貼上照片，讓花語為今天的你說話。</p>
 
       <div class="diary-toolbar">
-        <button class="tool-btn" @click="$el.querySelector('#photo-input').click()">📷 上傳照片</button>
+        <button class="tool-btn" @click="triggerPhotoInput">📷 上傳照片</button>
         <button class="tool-btn" @click="openDrawer">🎨 客製化手帳</button>
         <input id="photo-input" type="file" accept="image/*" style="display:none" @change="handlePhotoUpload" />
       </div>
@@ -503,7 +503,7 @@ input[type=range]::-moz-range-thumb{
         <div class="page-pad">
           <textarea class="diary-text" v-model="draftText" placeholder="親愛的手帳，今天的我……"></textarea>
 
-          <div class="photo-preview" v-if="draftPhoto" style="display:block">
+          <div class="photo-preview" v-if="draftPhoto">
             <div class="photo-tape"><img :src="draftPhoto" alt="上傳的照片" /></div>
           </div>
 
@@ -916,6 +916,15 @@ PetiteVue.createApp({
     this.showToast('已登出');
   },
 
+  triggerPhotoInput() {
+    const photoInput = document.querySelector('#photo-input');
+    if(photoInput) {
+      photoInput.click();
+    } else {
+      this.showToast('上傳功能初始化失敗 ❌');
+    }
+  },
+
   handlePhotoUpload(e) {
     const file = e.target.files[0];
     if(!file) return;
@@ -1038,20 +1047,21 @@ PetiteVue.createApp({
       word: this.newFlower.word,
       v: Math.max(0, Math.min(100, this.newFlower.v)), 
       a: Math.max(0, Math.min(100, this.newFlower.a)),
-      img: this.newFlower.img || '🌷', 
-      _new: true
+      img: this.newFlower.img || '🌷'
     };
     
     try {
-      await db.put(flower);
+      console.log('📤 正在上架花卉:', flower);
+      const result = await db.put(flower);
+      console.log('✅ 花卉上架成功:', result);
       
       // 改用這種方式追加，畫面才會即時重新渲染喔！
       this.flowers = [...this.flowers, flower]; 
       this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
       this.showToast('成功上架新花卉！🌸');
     } catch(err) {
-      this.showToast('上架失敗，請重試 ❌');
-      console.error('addFlower error:', err);
+      console.error('❌ 花卉上架失敗:', err.name, err.message);
+      this.showToast(`上架失敗: ${err.message} ❌`);
     }
   },
 
@@ -1083,20 +1093,21 @@ PetiteVue.createApp({
       type: this.newItem.type, 
       name: this.newItem.name, 
       price: Math.max(0, this.newItem.price), 
-      val: this.newItem.val, 
-      _new: true
+      val: this.newItem.val
     };
     
     try {
-      await db.put(item);
+      console.log('📤 正在上架商品:', item);
+      const result = await db.put(item);
+      console.log('✅ 商品上架成功:', result);
       
       // 同樣改用重新解構賦值的方式
       this.shopItems = [...this.shopItems, item];
       this.newItem = { name: '', type: 'bg', price: 0, val: '' };
       this.showToast('成功上架新商品！🛍️');
     } catch(err) {
-      this.showToast('上架失敗，請重試 ❌');
-      console.error('addItem error:', err);
+      console.error('❌ 商品上架失敗:', err.name, err.message);
+      this.showToast(`上架失敗: ${err.message} ❌`);
     }
   },
 
@@ -1153,8 +1164,7 @@ PetiteVue.createApp({
   showToast(msg) {
     this.toastMessage = msg; this.toastVisible = true;
     setTimeout(() => this.toastVisible = false, 2600);
-  },
-  avatarFor(nickname) { return avatarFor(nickname); }
+  }
 }).mount('#app');
 </script>
 
