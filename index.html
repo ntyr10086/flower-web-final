@@ -780,7 +780,8 @@ function avatarFor(nickname){
 }
 
 // 初始化 PouchDB
-const db = new PouchDB('flower-language');
+let db = new PouchDB('flower-language-guest');
+const globalDb = new PouchDB('flower-language-global');  // 全局数据库：花卉、商品
 
 // 啟動 Petite-Vue
 PetiteVue.createApp({
@@ -873,10 +874,13 @@ PetiteVue.createApp({
 
   async loadData() {
     const allDocs = await db.allDocs({ include_docs: true });
+    const globalDocs = await globalDb.allDocs({ include_docs: true });
     
-    // 使用展開運算子確保 petite-vue 能察覺到陣列的完整替換
-    this.flowers = [...allDocs.rows.filter(r => r.doc.type === 'flower').map(r => r.doc)];
-    this.shopItems = [...allDocs.rows.filter(r => ['bg', 'sticker'].includes(r.doc.type)).map(r => r.doc)];
+    // 从全局数据库读取花卉和商品（所有用户共享）
+    this.flowers = [...globalDocs.rows.filter(r => r.doc.type === 'flower').map(r => r.doc)];
+    this.shopItems = [...globalDocs.rows.filter(r => ['bg', 'sticker'].includes(r.doc.type)).map(r => r.doc)];
+    
+    // 从个人数据库读取日记和社群贴文
     this.diaries = [...allDocs.rows.filter(r => r.doc.type === 'diary').map(r => r.doc)];
     this.communityPosts = [...allDocs.rows.filter(r => r.doc.type === 'community-post').map(r => r.doc)];
   },
@@ -895,6 +899,9 @@ PetiteVue.createApp({
   },
 
   async loginAs(username, role) {
+    // 为该用户创建独立的数据库
+    db = new PouchDB(`flower-language-${username}`);
+    
     this.currentUser.username = username;
     this.currentUser.role = role;
     this.currentUser.nickname = generateNickname();
@@ -909,6 +916,9 @@ PetiteVue.createApp({
   },
 
   logout() {
+    // 登出时重置为临时数据库
+    db = new PouchDB('flower-language-guest');
+    
     this.currentUser = { username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
     this.draftPhoto = null;
     this.draftText = '';
@@ -1052,7 +1062,7 @@ PetiteVue.createApp({
     
     try {
       console.log('📤 正在上架花卉:', flower);
-      const result = await db.put(flower);
+      const result = await globalDb.put(flower);  // ← 保存到全局数据库
       console.log('✅ 花卉上架成功:', result);
       
       // 改用這種方式追加，畫面才會即時重新渲染喔！
@@ -1068,8 +1078,8 @@ PetiteVue.createApp({
   async deleteFlower(flowerId) {
     if(!confirm('確定刪除？')) return;
     try {
-      const latestDoc = await db.get(flowerId);
-      await db.remove(latestDoc);
+      const latestDoc = await globalDb.get(flowerId);  // ← 从全局数据库获取
+      await globalDb.remove(latestDoc);  // ← 从全局数据库删除
       this.flowers = this.flowers.filter(f => f._id !== flowerId);
       this.showToast('花卉已刪除 🗑️');
     } catch(err) {
@@ -1098,7 +1108,7 @@ PetiteVue.createApp({
     
     try {
       console.log('📤 正在上架商品:', item);
-      const result = await db.put(item);
+      const result = await globalDb.put(item);  // ← 保存到全局数据库
       console.log('✅ 商品上架成功:', result);
       
       // 同樣改用重新解構賦值的方式
@@ -1114,8 +1124,8 @@ PetiteVue.createApp({
   async deleteItem(itemId) {
     if(!confirm('確定刪除？')) return;
     try {
-      const latestDoc = await db.get(itemId);
-      await db.remove(latestDoc);
+      const latestDoc = await globalDb.get(itemId);  // ← 从全局数据库获取
+      await globalDb.remove(latestDoc);  // ← 从全局数据库删除
       this.shopItems = this.shopItems.filter(i => i._id !== itemId);
       this.showToast('商品已刪除 🗑️');
     } catch(err) {
