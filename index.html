@@ -4,52 +4,13 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Flower Language 花語心情手帳</title>
-
-<!-- Firebase SDK v10.7.0 -->
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-  import { 
-    getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
-    query, where, serverTimestamp, setDoc, writeBatch, onSnapshot
-  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-  import { 
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-    onAuthStateChanged, signOut 
-  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
-  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
-
-  // 🔒 Firebase配置 - 改用環境變數（部署時替換）
-  const firebaseConfig = {
-    apiKey: "AIzaSyB56gmNnVcT_vogKfZE04oSfLUgUMKu52c",
-    authDomain: "flower-language-app.firebaseapp.com",
-    projectId: "flower-language-app",
-    storageBucket: "flower-language-app.firebasestorage.app",
-    messagingSenderId: "509334232078",
-    appId: "1:509334232078:web:50a779494d6812b67df05f"
-  };
-
-  try {
-    const app = initializeApp(firebaseConfig);
-    window.db = getFirestore(app);
-    window.auth = getAuth(app);
-    window.storage = getStorage(app);
-    window.fbUtils = { 
-      collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
-      query, where, serverTimestamp, setDoc, writeBatch, onSnapshot,
-      createUserWithEmailAndPassword, signInWithEmailAndPassword, 
-      onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL
-    };
-    console.log('✅ Firebase initialized');
-  } catch (error) {
-    console.error('❌ Firebase init error:', error);
-  }
-</script>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
-
 <style>
+/* ============================================================
+   一、 全域療癒色調變數 ＆ 基礎排版
+   ============================================================ */
 :root{
   --bg-paper:  #FDFBF7;
   --bg-cream:  #F5EBE6;
@@ -70,9 +31,10 @@ html,body{height:100%}
 body{
   font-family:"Noto Serif TC",serif;
   color:var(--ink);
-  background: radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%), 
-              radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%), 
-              var(--bg-paper);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%),
+    var(--bg-paper);
   background-attachment:fixed;
   line-height:1.7;
   -webkit-font-smoothing:antialiased;
@@ -85,11 +47,13 @@ body::before{
 }
 
 .hand{font-family:"Long Cang","Gaegu",cursive}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
 input,textarea,select{font-family:inherit}
 img{max-width:100%;display:block}
 
-/* 認證頁面 */
+/* ============================================================
+   登入 / 註冊畫面
+   ============================================================ */
 #auth-screen{
   position:relative;z-index:1;
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -103,50 +67,285 @@ img{max-width:100%;display:block}
   position:relative;
   border:1px solid #EFE3D5;
 }
+.auth-card::after{
+  content:"";position:absolute;left:22px;top:18px;bottom:18px;width:2px;
+  background:repeating-linear-gradient(var(--primary-orange) 0 6px,transparent 6px 14px);
+  opacity:.45;border-radius:2px;
+}
 .brand{display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:8px}
 .brand .logo{font-size:46px;filter:drop-shadow(0 6px 10px var(--shadow))}
 .brand h1{font-size:30px;letter-spacing:1px;color:var(--primary-brown)}
 .brand .sub{color:var(--ink-soft);font-size:14px;letter-spacing:3px}
-
 .tab-switch{display:flex;background:var(--bg-cream);border-radius:999px;padding:5px;margin:24px 0 18px}
 .tab-switch button{flex:1;padding:9px 0;border-radius:999px;color:var(--ink-soft);font-weight:600;transition:.25s}
 .tab-switch button.active{background:var(--primary-orange);color:#fff;box-shadow:0 4px 12px var(--shadow)}
-
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px;letter-spacing:1px}
-.field input{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:15px;transition:.2s}
-.field input:focus{outline:none;border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.18)}
-
-.btn-primary{width:100%;padding:13px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));box-shadow:0 8px 20px var(--shadow);transition:.2s;cursor:pointer}
-.btn-primary:hover{opacity:.9}
-.btn-primary:active{transform:scale(.98)}
-
-.demo-buttons{text-align:center;margin-top:20px}
-.demo-btn{color:var(--ink-soft);text-decoration:underline;cursor:pointer;border:none;background:none;font-size:13px;margin-top:10px;transition:.2s}
-.demo-btn:hover{color:var(--primary-orange)}
-
-/* 主應用 */
-.top-bar{position:relative;z-index:20;padding:20px;display:flex;justify-content:space-between;align-items:center;background:rgba(253,251,247,.85);backdrop-filter:blur(8px);box-shadow:0 2px 8px var(--shadow)}
-.greet{font-size:16px;font-weight:600;color:var(--primary-brown)}
-.user-info{display:flex;align-items:center;gap:16px}
-.points-badge{background:var(--primary-orange);color:#fff;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
-.logout-btn{padding:8px 16px;background:var(--bg-cream);border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--ink);transition:.2s}
-.logout-btn:hover{background:var(--accent-rose);color:#fff}
-
-.view{padding:20px;margin-bottom:100px;animation:fadeUp .4s ease}
-.view-title{font-size:28px;font-weight:600;margin-bottom:10px;color:var(--primary-brown)}
-.view-sub{color:var(--ink-soft);margin-bottom:20px;font-size:15px}
-
-.toast{
-  position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);
-  background:var(--primary-brown);color:#fff;padding:13px 24px;border-radius:99px;
-  font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:90;
+.field input,.field select{
+  width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--ink);font-size:15px;transition:.2s;
 }
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.field input:focus,.field select:focus{outline:none;border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.18)}
+.role-pick{display:flex;gap:10px;margin-bottom:16px}
+.role-pick label{
+  flex:1;text-align:center;padding:10px;border:1.5px solid var(--line);border-radius:10px;
+  cursor:pointer;font-size:14px;transition:.2s;background:#fff;
+}
+.role-pick input{display:none}
+.role-pick input:checked + span{color:#fff}
+.role-pick label:has(input:checked){background:var(--primary-brown);border-color:var(--primary-brown);color:#fff}
+.btn-primary{
+  width:100%;padding:13px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));
+  box-shadow:0 8px 20px var(--shadow);transition:.2s;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 26px var(--shadow)}
+.btn-primary:active{transform:translateY(0)}
+.quick-login{margin-top:22px;border-top:1px dashed var(--line);padding-top:18px}
+.quick-login p{font-size:12px;color:var(--ink-soft);text-align:center;margin-bottom:10px;letter-spacing:2px}
+.quick-row{display:flex;gap:10px}
+.quick-row button{
+  flex:1;padding:10px;border-radius:10px;background:var(--bg-cream);color:var(--primary-brown);
+  font-weight:600;font-size:13px;border:1px solid var(--line);transition:.2s;
+}
+.quick-row button:hover{background:var(--primary-orange);color:#fff}
 
-@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+/* ============================================================
+   主應用框架
+   ============================================================ */
+#app-screen{display:block;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
+.top-bar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 24px;
+  background:rgba(253,251,247,.86);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line);
+}
+.top-bar .greet{font-size:18px;color:var(--primary-brown);font-weight:600}
+.top-bar .pill{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--bg-cream);border:1px solid var(--line);border-radius:999px;
+  padding:6px 14px;font-size:14px;color:var(--primary-brown);font-weight:600;
+}
+.top-bar .right{display:flex;align-items:center;gap:12px}
+.logout-btn{
+  padding:8px 14px;border-radius:999px;border:1px solid var(--line);
+  background:#fff;color:var(--ink-soft);font-size:13px;transition:.2s;
+}
+.logout-btn:hover{background:var(--accent-rose);color:#fff;border-color:var(--accent-rose)}
 
-/* 導覽列 */
+.view{max-width:920px;margin:0 auto;padding:28px 20px}
+.view-title{font-size:24px;color:var(--primary-brown);margin-bottom:6px;letter-spacing:1px}
+.view-sub{color:var(--ink-soft);font-size:14px;margin-bottom:22px}
+
+.notebook{
+  position:relative;background:var(--bg-paper);border-radius:var(--radius);
+  box-shadow:0 14px 34px var(--shadow), 0 2px 0 #fff inset;
+  border:1px solid #EFE3D5;padding:26px 30px;overflow:hidden;
+}
+.notebook::before{
+  content:"";position:absolute;left:16px;top:0;bottom:0;width:1.5px;
+  background:var(--accent-rose);opacity:.35;
+}
+.notebook.lined{
+  background-image:repeating-linear-gradient(transparent 0 35px, var(--line) 35px 36px);
+  background-position:0 18px;
+}
+.page-pad{padding-left:18px}
+
+/* ============================================================
+   寫日記
+   ============================================================ */
+.diary-grid{display:grid;grid-template-columns:1fr;gap:22px}
+.diary-toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 15px;border-radius:10px;background:var(--bg-cream);
+  border:1px solid var(--line);color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.tool-btn:hover{background:var(--primary-orange);color:#fff;transform:translateY(-1px)}
+.diary-text{
+  width:100%;min-height:150px;resize:vertical;border:none;background:transparent;
+  font-size:16px;color:var(--ink);line-height:36px;padding:0 6px;
+}
+.diary-text:focus{outline:none}
+.photo-preview{margin-top:14px;display:none}
+.photo-preview img{
+  border-radius:10px;border:6px solid #fff;box-shadow:0 8px 20px var(--shadow);
+  transform:rotate(-1.4deg);max-height:280px;object-fit:cover;
+}
+.photo-tape{
+  position:relative;display:inline-block;
+}
+.photo-tape::before{
+  content:"";position:absolute;top:-12px;left:50%;transform:translateX(-50%) rotate(-3deg);
+  width:90px;height:26px;background:rgba(230,161,92,.4);border-radius:3px;
+}
+.stickers-layer{margin-top:14px;display:flex;flex-wrap:wrap;gap:10px;font-size:30px}
+.sticker-on-page{filter:drop-shadow(0 3px 5px var(--shadow));animation:pop .35s ease}
+
+.mood-block{margin-top:20px;background:var(--bg-cream);border-radius:12px;padding:18px 20px}
+.mood-block h4{color:var(--primary-brown);margin-bottom:14px;font-size:16px}
+.slider-row{margin-bottom:16px}
+.slider-row .lab{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);margin-bottom:6px}
+.slider-row .lab b{color:var(--primary-orange)}
+input[type=range]{
+  -webkit-appearance:none;width:100%;height:7px;border-radius:99px;
+  background:linear-gradient(90deg,var(--line),var(--primary-orange));outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:22px;height:22px;border-radius:50%;
+  background:#fff;border:3px solid var(--primary-orange);box-shadow:0 3px 8px var(--shadow);cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;height:22px;border-radius:50%;background:#fff;border:3px solid var(--primary-orange);cursor:pointer;
+}
+.publish-toggle{display:flex;align-items:center;gap:10px;margin:18px 0;font-size:14px;color:var(--ink-soft)}
+.switch{position:relative;width:48px;height:26px;flex:0 0 auto}
+.switch input{display:none}
+.switch .track{
+  position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.25s;
+}
+.switch .track::after{
+  content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+  background:#fff;transition:.25s;box-shadow:0 2px 4px var(--shadow);
+}
+.switch input:checked + .track{background:var(--primary-orange)}
+.switch input:checked + .track::after{transform:translateX(22px)}
+
+.diary-list{margin-top:34px;display:grid;gap:18px}
+.diary-entry{
+  background:var(--bg-paper);border-radius:12px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:20px 22px;position:relative;
+  background-image:repeating-linear-gradient(transparent 0 33px,var(--line) 33px 34px);
+  background-position:0 30px;
+}
+.diary-entry .date{font-size:13px;color:var(--ink-soft);letter-spacing:1px}
+.diary-entry .body{font-size:16px;line-height:34px;margin:6px 0 12px;white-space:pre-wrap}
+.diary-entry .entry-photo{margin:8px 0}
+.diary-entry .entry-photo img{max-height:200px;border-radius:8px;border:5px solid #fff;box-shadow:0 6px 16px var(--shadow);transform:rotate(-1deg)}
+.flower-chip{
+  display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+  background:var(--bg-cream);border:1px solid var(--line);border-radius:99px;
+  padding:7px 15px;font-size:14px;color:var(--primary-brown);font-weight:600;transition:.2s;
+}
+.flower-chip:hover{background:var(--primary-orange);color:#fff;transform:scale(1.04)}
+.flower-chip .em{font-size:22px}
+.entry-stickers{font-size:24px;margin-top:8px}
+.posted-flag{
+  position:absolute;top:14px;right:16px;font-size:12px;color:var(--leaf);
+  background:rgba(143,160,106,.12);padding:3px 10px;border-radius:99px;
+}
+
+/* ============================================================
+   花語圖鑑
+   ============================================================ */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+.flower-card,.shop-card{
+  background:var(--bg-paper);border-radius:14px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:22px 18px;text-align:center;
+  transition:.25s;position:relative;cursor:pointer;
+}
+.flower-card:hover{transform:translateY(-5px) rotate(-.6deg);box-shadow:0 18px 36px var(--shadow-deep)}
+.flower-card .big{font-size:52px;filter:drop-shadow(0 6px 10px var(--shadow))}
+.flower-card h3{color:var(--primary-brown);margin:10px 0 4px;font-size:18px}
+.flower-card .word{font-size:13px;color:var(--ink-soft);line-height:1.6}
+.flower-card .va{display:flex;justify-content:center;gap:10px;margin-top:10px;font-size:11px;color:var(--primary-orange)}
+.flower-card .va span{background:var(--bg-cream);padding:2px 8px;border-radius:99px}
+.new-badge{
+  position:absolute;top:-8px;right:-8px;background:var(--accent-rose);color:#fff;
+  font-size:11px;padding:3px 9px;border-radius:999px;box-shadow:0 4px 10px var(--shadow);animation:pop .4s ease;
+}
+
+/* ============================================================
+   虛擬商店
+   ============================================================ */
+.shop-card{cursor:default}
+.shop-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px var(--shadow-deep)}
+.shop-preview{
+  height:84px;border-radius:10px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;
+  font-size:38px;border:1px solid var(--line);
+}
+.shop-card h3{color:var(--primary-brown);font-size:16px;margin-bottom:4px}
+.shop-card .type-tag{font-size:11px;color:var(--ink-soft);letter-spacing:1px}
+.shop-card .price{font-size:15px;color:var(--primary-orange);font-weight:700;margin:8px 0}
+.buy-btn{
+  width:100%;padding:9px;border-radius:10px;font-weight:700;font-size:14px;color:#fff;
+  background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));
+  box-shadow:0 6px 14px var(--shadow);transition:.2s;
+}
+.buy-btn:hover{transform:translateY(-2px)}
+.buy-btn.owned{background:var(--leaf);cursor:default;box-shadow:none}
+.buy-btn.owned:hover{transform:none}
+
+/* ============================================================
+   匿名社群廣場
+   ============================================================ */
+.post-list{display:grid;gap:20px}
+.post{
+  background:var(--bg-paper);border-radius:14px;border:1px solid #EFE3D5;
+  box-shadow:0 10px 26px var(--shadow);padding:20px 22px;position:relative;
+}
+.post .head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.post .avatar{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;background:var(--bg-cream);border:1px solid var(--line);
+}
+.post .head .meta b{display:block;color:var(--primary-brown);font-size:15px}
+.post .head .meta span{font-size:12px;color:var(--ink-soft)}
+.post .content{font-size:15px;line-height:30px;white-space:pre-wrap;margin-bottom:10px}
+.post .post-photo img{border-radius:10px;border:5px solid #fff;box-shadow:0 6px 16px var(--shadow);max-height:260px;margin:8px 0}
+.post .post-flower{
+  display:inline-flex;align-items:center;gap:8px;background:var(--bg-cream);
+  border-radius:99px;padding:6px 14px;font-size:13px;color:var(--primary-brown);margin:6px 0 14px;cursor:pointer;
+}
+.post-actions{display:flex;gap:12px;border-top:1px dashed var(--line);padding-top:14px}
+.hug-btn,.flower-give-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:9px 16px;border-radius:99px;background:var(--bg-cream);border:1px solid var(--line);
+  color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.hug-btn:hover{background:var(--accent-rose);color:#fff;transform:scale(1.05)}
+.flower-give-btn:hover{background:var(--primary-orange);color:#fff;transform:scale(1.05)}
+.hug-btn.hugged{background:var(--accent-rose);color:#fff}
+.empty-hint{text-align:center;color:var(--ink-soft);padding:50px 20px;font-size:15px}
+.empty-hint .em{font-size:46px;display:block;margin-bottom:10px;opacity:.6}
+
+/* ============================================================
+   管理後台
+   ============================================================ */
+.admin-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+.admin-tabs button{
+  padding:10px 18px;border-radius:10px;background:var(--bg-cream);border:1px solid var(--line);
+  color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;
+}
+.admin-tabs button.active{background:var(--primary-brown);color:#fff}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+.form-grid .full{grid-column:1/-1}
+.form-grid label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px}
+.form-grid input,.form-grid select,.form-grid textarea{
+  width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);font-size:14px;
+}
+.form-grid input:focus,.form-grid select:focus,.form-grid textarea:focus{outline:none;border-color:var(--primary-orange)}
+.admin-list{margin-top:24px;display:grid;gap:10px}
+.admin-row{
+  display:flex;align-items:center;gap:14px;background:var(--bg-paper);
+  border:1px solid #EFE3D5;border-radius:10px;padding:12px 16px;box-shadow:0 6px 16px var(--shadow);
+  position:relative;
+}
+.admin-row .em{font-size:28px}
+.admin-row .info{flex:1}
+.admin-row .info b{color:var(--primary-brown)}
+.admin-row .info small{color:var(--ink-soft);display:block;font-size:12px}
+.delete-btn{
+  padding:6px 12px;border-radius:8px;background:var(--accent-rose);color:#fff;
+  font-weight:600;font-size:12px;transition:.2s;cursor:pointer;
+}
+.delete-btn:hover{background:#c96a57;transform:scale(1.05)}
+
+/* ============================================================
+   底部導覽列
+   ============================================================ */
 .nav-bar{
   position:fixed;left:0;right:0;bottom:0;z-index:30;
   display:flex;justify-content:center;gap:6px;
@@ -156,68 +355,86 @@ img{max-width:100%;display:block}
 }
 .nav-bar button{
   display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:8px 16px;border-radius:12px;color:var(--ink-soft);font-size:12px;font-weight:600;transition:.2s;min-width:64px;cursor:pointer;
+  padding:8px 16px;border-radius:12px;color:var(--ink-soft);font-size:12px;font-weight:600;transition:.2s;min-width:64px;
 }
+.nav-bar button .ic{font-size:22px}
 .nav-bar button.active{background:var(--bg-cream);color:var(--primary-orange)}
+.nav-bar button.admin-only{display:none}
+.nav-bar button.admin-only.show{display:flex}
 
-/* 日記表單 */
-.form-group{background:white;padding:20px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
-.form-group label{display:block;font-weight:600;color:var(--primary-brown);margin-bottom:8px;font-size:14px}
-.form-group textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;resize:vertical;min-height:120px}
-.form-group input[type="file"]{padding:8px;border:1.5px dashed var(--line);border-radius:10px;width:100%}
-.form-group .mood-options{display:flex;gap:10px;flex-wrap:wrap}
-.mood-btn{padding:8px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:.2s;font-size:14px}
-.mood-btn.active{background:var(--primary-orange);color:#fff;border-color:var(--primary-orange)}
+/* ============================================================
+   客製化抽屜面板
+   ============================================================ */
+.drawer-mask{
+  position:fixed;inset:0;z-index:50;background:rgba(90,70,50,.4);
+  backdrop-filter:blur(3px);display:none;
+}
+.drawer-mask.open{display:block}
+.drawer{
+  position:fixed;top:0;right:-380px;width:360px;max-width:90vw;height:100%;z-index:60;
+  background:var(--bg-paper);box-shadow:-12px 0 40px var(--shadow-deep);
+  transition:right .3s ease;padding:26px 24px;overflow-y:auto;
+}
+.drawer.open{right:0}
+.drawer h3{color:var(--primary-brown);font-size:20px;margin-bottom:4px}
+.drawer .dsub{font-size:13px;color:var(--ink-soft);margin-bottom:20px}
+.drawer-close{position:absolute;top:18px;right:18px;font-size:22px;color:var(--ink-soft)}
+.cust-section{margin-bottom:26px}
+.cust-section h4{color:var(--primary-orange);font-size:14px;margin-bottom:12px;letter-spacing:1px}
+.cust-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cust-item{
+  border:1.5px solid var(--line);border-radius:10px;padding:12px;text-align:center;
+  cursor:pointer;transition:.2s;position:relative;background:#fff;font-size:13px;color:var(--ink-soft);
+}
+.cust-item:hover{border-color:var(--primary-orange);transform:translateY(-2px)}
+.cust-item .swatch{height:46px;border-radius:8px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;font-size:26px;border:1px solid var(--line)}
+.cust-item.locked{opacity:.55;cursor:not-allowed}
+.cust-item.locked:hover{border-color:var(--line);transform:none}
+.cust-item .lock{position:absolute;top:8px;right:8px;font-size:16px}
+.cust-item.active-cust{border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.2)}
 
-.photo-preview{margin-top:12px;border-radius:10px;overflow:hidden;max-width:100%}
-.photo-preview img{width:100%;display:block}
+/* ============================================================
+   彈窗 Modal
+   ============================================================ */
+.modal-mask{
+  position:fixed;inset:0;z-index:80;background:rgba(90,70,50,.45);backdrop-filter:blur(4px);
+  display:none;align-items:center;justify-content:center;padding:24px;
+}
+.modal-mask.open{display:flex}
+.modal{
+  width:min(380px,100%);background:var(--bg-paper);border-radius:18px;padding:30px 28px;text-align:center;
+  box-shadow:0 24px 60px var(--shadow-deep);animation:pop .3s ease;border:1px solid #EFE3D5;
+}
+.modal .big{font-size:60px;filter:drop-shadow(0 8px 12px var(--shadow))}
+.modal h3{color:var(--primary-brown);margin:14px 0 8px;font-size:22px}
+.modal .word{color:var(--ink-soft);font-size:15px;line-height:1.8;margin-bottom:8px}
+.modal .va-line{font-size:12px;color:var(--primary-orange);margin-bottom:20px}
+.modal .btn-primary{width:auto;padding:11px 34px}
 
-/* 日記卡片 */
-.diary-card{background:white;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
-.diary-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.diary-date{font-weight:600;color:var(--primary-brown)}
-.diary-mood{font-size:12px;background:var(--bg-cream);padding:4px 8px;border-radius:6px;color:var(--ink-soft)}
-.diary-content{color:var(--ink);margin-bottom:12px;line-height:1.6}
-.diary-photo{margin:12px 0;border-radius:8px;overflow:hidden}
-.diary-photo img{width:100%;display:block}
-.diary-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
-.diary-delete{padding:6px 12px;background:var(--accent-rose);color:#fff;border-radius:8px;font-size:12px;cursor:pointer;transition:.2s}
-.diary-delete:hover{opacity:.8}
+.toast{
+  position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);
+  background:var(--primary-brown);color:#fff;padding:13px 24px;border-radius:99px;
+  font-size:14px;font-weight:600;box-shadow:0 12px 30px var(--shadow-deep);
+  opacity:0;transition:.3s;z-index:90;pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* 花卉卡片 */
-.flower-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-.flower-card{background:white;padding:16px;border-radius:12px;text-align:center;box-shadow:0 2px 8px var(--shadow);cursor:pointer;transition:.2s}
-.flower-card:hover{transform:translateY(-4px);box-shadow:0 6px 16px var(--shadow)}
-.flower-emoji{font-size:36px;margin-bottom:8px}
-.flower-name{font-weight:600;color:var(--primary-brown);margin-bottom:4px}
-.flower-word{font-size:12px;color:var(--ink-soft);line-height:1.4}
+@keyframes pop{0%{transform:scale(.7);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+.view{animation:fadeUp .4s ease}
 
-/* 管理面板 */
-.admin-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
-.admin-tabs button{padding:10px 18px;border-radius:10px;background:var(--bg-cream);border:1px solid var(--line);color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;cursor:pointer}
-.admin-tabs button.active{background:var(--primary-brown);color:#fff}
-
-.admin-list{margin-top:24px;display:grid;gap:10px}
-.admin-row{display:flex;align-items:center;gap:14px;background:var(--bg-paper);border:1px solid #EFE3D5;border-radius:10px;padding:12px 16px;box-shadow:0 2px 8px var(--shadow)}
-.admin-row .info{flex:1}
-.admin-row .info b{color:var(--primary-brown)}
-.delete-btn{padding:6px 12px;border-radius:8px;background:var(--accent-rose);color:#fff;font-weight:600;font-size:12px;cursor:pointer;transition:.2s}
-.delete-btn:hover{opacity:.8}
-
-.loading{text-align:center;padding:40px;color:var(--ink-soft)}
-.empty-hint{text-align:center;color:var(--ink-soft);padding:50px 20px;font-size:15px}
-
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
-.modal.show{display:flex}
-.modal-content{background:white;padding:30px;border-radius:16px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink-soft)}
+@media(max-width:560px){
+  .form-grid{grid-template-columns:1fr}
+  .nav-bar button{padding:8px 10px;min-width:56px}
+  .top-bar{padding:14px 16px}
+  .top-bar .greet{font-size:15px}
+}
 </style>
 </head>
 <body>
 
 <div id="app" v-scope>
-  <!-- 登入 -->
-  <div id="auth-screen" v-if="!currentUser.uid">
+  <div id="auth-screen" v-if="!currentUser.role">
     <div class="auth-card">
       <div class="brand">
         <div class="logo">🌼</div>
@@ -231,469 +448,741 @@ img{max-width:100%;display:block}
       </div>
 
       <div class="field">
-        <label>帳號（Email）</label>
-        <input v-model="authUsername" type="email" placeholder="example@email.com" />
+        <label>帳號（Email 格式）</label>
+        <input v-model="authUsername" type="text" placeholder="例如：guest@test.com" autocomplete="off" />
       </div>
       <div class="field">
-        <label>密碼</label>
-        <input v-model="authPassword" type="password" placeholder="至少6個字符" />
+        <label>密碼（至少 6 位數）</label>
+        <input v-model="authPassword" type="password" placeholder="輸入您的密碼" autocomplete="off" />
       </div>
 
-      <button class="btn-primary" @click="handleAuthSubmit">
-        {{ authMode === 'login' ? '進入手帳' : '建立帳號' }}
-      </button>
+      <div class="role-pick">
+        <label><input type="radio" name="role" value="client" v-model="authRole"><span>🌿 一般用戶</span></label>
+        <label><input type="radio" name="role" value="admin" v-model="authRole"><span>🛠 管理員</span></label>
+      </div>
 
-      <div class="demo-buttons">
-        <p style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">📌 快速Demo登入：</p>
-        <button class="demo-btn" @click="quickLogin('admin')">🛠 管理員</button>
-        <button class="demo-btn" @click="quickLogin('user')">🌿 一般用戶</button>
+      <button class="btn-primary" @click="handleAuthSubmit">{{ authMode === 'login' ? '進入手帳' : '建立帳號' }}</button>
+
+      <div class="quick-login">
+        <p>— 期末 DEMO 一鍵測試登入 —</p>
+        <div class="quick-row">
+          <button @click="quickLogin('client')">🌿 一般用戶 Demo</button>
+          <button @click="quickLogin('admin')">🛠 管理員 Demo</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 主應用 -->
-  <div v-if="currentUser.uid">
+  <div id="app-screen" v-if="currentUser.role">
     <div class="top-bar">
       <div class="greet">{{ greetText }}，{{ currentUser.nickname }} 🍂</div>
-      <div class="user-info">
-        <div class="points-badge">🌸 {{ userPoints }} points</div>
+      <div class="right">
+        <span class="pill">🪙 {{ currentUser.points }} 點</span>
         <button class="logout-btn" @click="logout">登出</button>
       </div>
     </div>
 
-    <!-- 日記頁 -->
     <section class="view" v-if="activeTab === 'diary'">
-      <h2 class="view-title hand">📔 手帳日記</h2>
-      <p class="view-sub">記錄今天的心情與故事</p>
-      
-      <div class="form-group" v-if="!showDiaryForm" style="text-align:center;padding:30px">
-        <button class="btn-primary" @click="showDiaryForm = true" style="width:auto;padding:12px 28px">+ 新增日記</button>
+      <h2 class="view-title hand">手帳日記 📔</h2>
+      <p class="view-sub">拉動情緒滑桿、貼上照片，讓花語為今天的你說話。</p>
+
+      <div class="diary-toolbar">
+        <button class="tool-btn" @click="triggerPhotoInput">📷 上傳照片</button>
+        <button class="tool-btn" @click="openDrawer">🎨 客製化手帳</button>
+        <input id="photo-input" type="file" accept="image/*" style="display:none" @change="handlePhotoUpload" />
       </div>
 
-      <div class="form-group" v-if="showDiaryForm">
-        <label>心情選擇</label>
-        <div class="mood-options">
-          <button v-for="mood in moods" :key="mood" 
-            :class="{active: newDiary.mood === mood}" 
-            class="mood-btn" 
-            @click="newDiary.mood = mood">
-            {{ mood }}
+      <div class="notebook lined" :style="{background: appliedBg}">
+        <div class="page-pad">
+          <textarea class="diary-text" v-model="draftText" placeholder="親愛的手帳，今天的我……"></textarea>
+
+          <div class="photo-preview" v-if="draftPhoto">
+            <div class="photo-tape"><img :src="draftPhoto" alt="上傳的照片" /></div>
+          </div>
+
+          <div class="stickers-layer">
+            <span v-for="sticker of appliedStickers" :key="sticker" class="sticker-on-page">{{ sticker }}</span>
+          </div>
+
+          <div class="mood-block">
+            <h4>🌈 今日心情座標（羅素情緒模型）</h4>
+            <div class="slider-row">
+              <div class="lab"><span>愉悅度 Valence</span><b><span>{{ sliderV }}</span> / 100</b></div>
+              <input type="range" v-model.number="sliderV" min="0" max="100">
+            </div>
+            <div class="slider-row">
+              <div class="lab"><span>能量水平 Arousal</span><b><span>{{ sliderA }}</span> / 100</b></div>
+              <input type="range" v-model.number="sliderA" min="0" max="100">
+            </div>
+          </div>
+
+          <label class="publish-toggle">
+            <span class="switch">
+              <input type="checkbox" v-model="publishToommunity">
+              <span class="track"></span>
+            </span>
+            將這篇心情匿名分享到社群廣場 💬
+          </label>
+
+          <button class="btn-primary" @click="recordMood">🌷 記錄心情並推薦花朵</button>
+        </div>
+      </div>
+
+      <div class="diary-list" v-if="diaries.length > 0">
+        <article class="diary-entry" v-for="diary of reversedDiaries" :key="diary.id">
+          <span class="posted-flag" v-if="diary.isAnonymous">🌿 已分享至社群</span>
+          <div class="date">{{ diary.date }}</div>
+          <div class="body">{{ diary.text }}</div>
+          <div class="entry-photo" v-if="diary.photo">
+            <img :src="diary.photo" alt="日記照片">
+          </div>
+          <div class="entry-stickers" v-if="diary.stickers && diary.stickers.length">
+            {{ diary.stickers.join(' ') }}
+          </div>
+          <div style="margin-top:12px">
+            <span class="flower-chip" @click="showFlowerModal(diary.flower.id)">
+              <span class="em">{{ diary.flower.img }}</span> 今日代表花：{{ diary.flower.name }}
+            </span>
+          </div>
+        </article>
+      </div>
+      <div class="empty-hint" v-else>
+        <span class="em">📖</span>還沒有任何手帳紀錄，寫下今天的第一頁心情吧。
+      </div>
+    </section>
+
+    <section class="view" v-if="activeTab === 'gallery'">
+      <h2 class="view-title hand">花語圖鑑 🌸</h2>
+      <p class="view-sub">每一朵花都有它想說的話，點擊查看完整花語。</p>
+      <div class="card-grid">
+        <div class="flower-card" v-for="flower of flowers" :key="flower.id" @click="showFlowerModal(flower.id)">
+          <div class="big">{{ flower.img }}</div>
+          <h3>{{ flower.name }}</h3>
+          <div class="word">{{ flower.word }}</div>
+          <div class="va"><span>V {{ flower.v }}</span><span>A {{ flower.a }}</span></div>
+          <div v-if="currentUser.unlockedItems.includes('flower-' + flower.id)" style="margin-top:8px;font-size:12px;color:var(--leaf)">🌿 已收藏</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" v-if="activeTab === 'shop'">
+      <h2 class="view-title hand">虛擬商店 🛍️</h2>
+      <p class="view-sub">用心情點數兌換背景與貼紙，打造專屬你的手帳風格。</p>
+      <div class="card-grid">
+        <div class="shop-card" v-for="item of shopItems" :key="item.id">
+          <div class="shop-preview" v-if="item.type === 'bg'" :style="{background: item.val}"></div>
+          <div class="shop-preview" v-else style="background:var(--bg-cream)">{{ item.val }}</div>
+          <h3>{{ item.name }}</h3>
+          <div class="type-tag">{{ item.type === 'bg' ? '手帳背景' : '裝飾貼紙' }}</div>
+          <div class="price">{{ item.price === 0 ? '免費' : '🪙 ' + item.price + ' 點' }}</div>
+          <button class="buy-btn" :class="{owned: currentUser.unlockedItems.includes(item.id)}" 
+            @click="buyItem(item.id)" :disabled="currentUser.unlockedItems.includes(item.id)">
+            {{ currentUser.unlockedItems.includes(item.id) ? '已擁有' : '購買' }}
           </button>
         </div>
-
-        <label style="margin-top:16px">日記內容</label>
-        <textarea v-model="newDiary.content" placeholder="分享你的故事..."></textarea>
-
-        <label style="margin-top:16px">上傳照片</label>
-        <input type="file" accept="image/*" @change="handlePhotoUpload">
-        <div v-if="newDiary.photoPreview" class="photo-preview">
-          <img :src="newDiary.photoPreview" />
-          <button @click="newDiary.photo = ''; newDiary.photoPreview = ''" style="width:100%;padding:8px;background:var(--accent-rose);color:#fff;cursor:pointer;border-radius:0 0 10px 10px">刪除照片</button>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:16px">
-          <button class="btn-primary" @click="saveDiary" style="flex:1">保存日記</button>
-          <button class="btn-primary" @click="showDiaryForm = false" style="flex:1;background:var(--bg-cream);color:var(--ink)">取消</button>
-        </div>
-      </div>
-
-      <div v-if="diaries.length === 0 && !showDiaryForm" class="empty-hint">還沒有日記呢，開始寫第一篇吧 📝</div>
-      <div v-for="diary in reversedDiaries" :key="diary.id" class="diary-card">
-        <div class="diary-card-header">
-          <span class="diary-date">{{ formatDate(diary.date) }}</span>
-          <span class="diary-mood">{{ diary.mood || '未設定' }}</span>
-        </div>
-        <div class="diary-content">{{ diary.content }}</div>
-        <div v-if="diary.photo" class="diary-photo">
-          <img :src="diary.photo" />
-        </div>
-        <div class="diary-actions">
-          <button class="diary-delete" @click="deleteDiary(diary.id)">刪除</button>
-        </div>
       </div>
     </section>
 
-    <!-- 花卉百科 -->
-    <section class="view" v-if="activeTab === 'flowers'">
-      <h2 class="view-title hand">🌺 花卉百科</h2>
-      <p class="view-sub">認識花語，找到共鳴</p>
-      <div v-if="flowers.length === 0" class="loading">加載中...</div>
-      <div class="flower-grid">
-        <div v-for="flower in flowers" :key="flower.id" class="flower-card" @click="showFlowerModal(flower)">
-          <div class="flower-emoji">{{ flower.img }}</div>
-          <div class="flower-name">{{ flower.name }}</div>
-          <div class="flower-word">{{ flower.word }}</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 社群分享 -->
     <section class="view" v-if="activeTab === 'community'">
-      <h2 class="view-title hand">🌸 社群分享</h2>
-      <p class="view-sub">與他人分享你的故事（開發中...）</p>
-      <div class="empty-hint">社群功能即將上線 💬</div>
+      <h2 class="view-title hand">社群廣場 💬</h2>
+      <p class="view-sub">這裡的每個人都用花朵化名分享心情，安心又溫暖。</p>
+      <div v-if="communityPosts.length === 0" class="empty-hint">
+        <span class="em">🌾</span>還沒有人分享心情。<br>回到手帳日記，打開「分享到社群」開關，成為第一朵綻放的花。
+      </div>
+      <div class="post-list" v-else>
+        <article class="post" v-for="post of reversedCommunityPosts" :key="post.id">
+          <div class="head">
+            <div class="avatar">{{ avatarFor(post.nickname) }}</div>
+            <div class="meta">
+              <b>{{ post.nickname }}</b>
+              <span>{{ post.date }}</span>
+            </div>
+          </div>
+          <div class="content">{{ post.text }}</div>
+          <div class="post-photo" v-if="post.photo">
+            <img :src="post.photo" alt="分享照片">
+          </div>
+          <div class="post-flower" @click="showFlowerModal(post.flower.id)">
+            {{ post.flower.img }} 今日代表花：{{ post.flower.name }}
+          </div>
+          <div class="post-actions">
+            <button class="hug-btn" :class="{hugged: post.huggedBy?.includes(currentUser.uid)}" @click="giveHug(post.id)">
+              給予擁抱 🫂 (<span class="count">{{ post.hugs }}</span>)
+            </button>
+            <button class="flower-give-btn" @click="giveFlower(post.id)">
+              送一朵花 🌷 (<span class="count">{{ post.flowersGiven }}</span>)
+            </button>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <!-- 管理後台 -->
     <section class="view" v-if="activeTab === 'admin' && currentUser.role === 'admin'">
-      <h2 class="view-title hand">⚙️ 管理後台</h2>
+      <h2 class="view-title hand">管理後台 🛠</h2>
+      <p class="view-sub">在這裡上架的內容，會即時同步到所有使用者的圖鑑與商店。</p>
       
       <div class="admin-tabs">
-        <button :class="{active: adminPanel === 'flowers'}" @click="adminPanel = 'flowers'">花卉管理</button>
-        <button :class="{active: adminPanel === 'users'}" @click="adminPanel = 'users'">用戶統計</button>
+        <button :class="{active: adminPanel === 'flowers'}" @click="adminPanel = 'flowers'">🌸 管理花卉</button>
+        <button :class="{active: adminPanel === 'items'}" @click="adminPanel = 'items'">🛍️ 管理商品</button>
       </div>
 
-      <!-- 花卉管理 -->
       <div v-if="adminPanel === 'flowers'">
-        <div class="form-group">
-          <h3 style="margin-bottom:16px;color:var(--primary-brown)">新增花卉</h3>
-          <input v-model="newFlower.name" placeholder="花卉名稱" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px" />
-          <input v-model="newFlower.img" placeholder="花卉符號（如🌻）" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px" />
-          <textarea v-model="newFlower.word" placeholder="花語描述" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px;min-height:60px"></textarea>
-          <button class="btn-primary" @click="addFlower">新增花卉</button>
+        <div class="notebook">
+          <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架花卉</h3>
+          <div class="form-grid">
+            <div><label>花卉名稱</label><input v-model="newFlower.name" placeholder="例如：滿天星"></div>
+            <div><label>代表 Emoji</label><input v-model="newFlower.img" placeholder="例如：🌼"></div>
+            <div class="full"><label>花語</label><input v-model="newFlower.word" placeholder="例如：純潔的心、思念與守候"></div>
+            <div><label>愉悅度 Valence (0-100)</label><input v-model.number="newFlower.v" type="number" min="0" max="100"></div>
+            <div><label>能量水平 Arousal (0-100)</label><input v-model.number="newFlower.a" type="number" min="0" max="100"></div>
+          </div>
+          <button class="btn-primary" @click="addFlower">確認上架花卉</button>
         </div>
-
-        <h3 style="margin-bottom:16px;color:var(--primary-brown)">已有花卉清單</h3>
         <div class="admin-list">
-          <div v-for="flower in flowers" :key="flower.id" class="admin-row">
-            <div style="font-size:28px">{{ flower.img }}</div>
+          <div class="admin-row" v-for="flower of flowers" :key="flower.id">
+            <span class="em">{{ flower.img }}</span>
             <div class="info">
               <b>{{ flower.name }}</b>
-              <small style="display:block;color:var(--ink-soft);font-size:12px">{{ flower.word }}</small>
+              <small>{{ flower.word }} ｜ V:{{ flower.v }} A:{{ flower.a }}</small>
             </div>
             <button class="delete-btn" @click="deleteFlower(flower.id)">刪除</button>
           </div>
         </div>
       </div>
 
-      <!-- 用戶統計 -->
-      <div v-if="adminPanel === 'users'">
-        <div class="form-group">
-          <h3 style="color:var(--primary-brown);margin-bottom:16px">📊 應用統計</h3>
-          <p style="margin-bottom:8px"><b>總日記數：</b> {{ totalDiaries }}</p>
-          <p style="margin-bottom:8px"><b>花卉庫存：</b> {{ flowers.length }} 種</p>
-          <p><b>當前用戶：</b> {{ currentUser.nickname }}</p>
+      <div v-if="adminPanel === 'items'">
+        <div class="notebook">
+          <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架商品</h3>
+          <div class="form-grid">
+            <div><label>商品名稱</label><input v-model="newItem.name" placeholder="例如：黃昏漸層背景"></div>
+            <div>
+              <label>類別</label>
+              <select v-model="newItem.type">
+                <option value="bg">手帳背景</option>
+                <option value="sticker">裝飾貼紙</option>
+              </select>
+            </div>
+            <div><label>定價（點數）</label><input v-model.number="newItem.price" type="number" min="0"></div>
+            <div><label>內容值 <small style="color:var(--ink-soft)">{{ newItem.type === 'bg' ? '請填 CSS 顏色或漸層' : '請填一個 Emoji 貼紙' }}</small></label><input v-model="newItem.val" :placeholder="newItem.type === 'bg' ? '#FCD34D 或漸層' : '🌙'"></div>
+          </div>
+          <button class="btn-primary" @click="addItem">確認上架商品</button>
+        </div>
+        <div class="admin-list">
+          <div class="admin-row" v-for="item of shopItems" :key="item.id">
+            <span class="em">{{ item.type === 'sticker' ? item.val : '🎨' }}</span>
+            <div class="info">
+              <b>{{ item.name }}</b>
+              <small>{{ item.type === 'bg' ? '手帳背景' : '裝飾貼紙' }} ｜ {{ item.price === 0 ? '免費' : item.price + ' 點' }}</small>
+            </div>
+            <button class="delete-btn" @click="deleteItem(item.id)">刪除</button>
+          </div>
         </div>
       </div>
     </section>
+
+    <nav class="nav-bar">
+      <button :class="{active: activeTab === 'diary'}" @click="activeTab = 'diary'"><span class="ic">📔</span>手帳日記</button>
+      <button :class="{active: activeTab === 'gallery'}" @click="activeTab = 'gallery'"><span class="ic">🌸</span>花語圖鑑</button>
+      <button :class="{active: activeTab === 'shop'}" @click="activeTab = 'shop'"><span class="ic">🛍️</span>虛擬商店</button>
+      <button :class="{active: activeTab === 'community'}" @click="activeTab = 'community'"><span class="ic">💬</span>社群廣場</button>
+      <button v-if="currentUser.role === 'admin'" :class="{active: activeTab === 'admin', 'admin-only': true, show: true}" @click="activeTab = 'admin'"><span class="ic">🛠</span>管理後台</button>
+    </nav>
   </div>
 
-  <!-- 花卉詳情Modal -->
-  <div class="modal" :class="{show: showModal}">
-    <div class="modal-content">
-      <button class="modal-close" @click="showModal = false">✕</button>
-      <div v-if="selectedFlower" style="text-align:center">
-        <div style="font-size:64px;margin-bottom:16px">{{ selectedFlower.img }}</div>
-        <h2 style="color:var(--primary-brown);margin-bottom:8px;font-size:24px">{{ selectedFlower.name }}</h2>
-        <p style="color:var(--ink);font-size:16px;line-height:1.6">{{ selectedFlower.word }}</p>
-        <button class="btn-primary" style="margin-top:20px" @click="showModal = false">關閉</button>
+  <div class="drawer-mask" :class="{open: drawerOpen}" @click="closeDrawer"></div>
+  <div class="drawer" :class="{open: drawerOpen}">
+    <button class="drawer-close" @click="closeDrawer">✕</button>
+    <h3 class="hand">客製化手帳 🎨</h3>
+    <p class="dsub">挑選你擁有的背景與貼紙，點一下即時套用在手帳上。</p>
+    
+    <div class="cust-section">
+      <h4>🖼️ 手帳背景</h4>
+      <div class="cust-grid">
+        <div v-for="item of shopItems.filter(i => i.type === 'bg')" :key="item.id" 
+          :class="{locked: !currentUser.unlockedItems.includes(item.id), 'active-cust': appliedBg === item.val}"
+          class="cust-item" @click="currentUser.unlockedItems.includes(item.id) && applyBackground(item.id)">
+          <span class="lock" v-if="!currentUser.unlockedItems.includes(item.id)">🔒</span>
+          <div class="swatch" :style="{background: item.val}"></div>{{ item.name }}
+        </div>
       </div>
+    </div>
+
+    <div class="cust-section">
+      <h4>✨ 內頁貼紙</h4>
+      <div class="cust-grid">
+        <div v-for="item of shopItems.filter(i => i.type === 'sticker')" :key="item.id"
+          :class="{locked: !currentUser.unlockedItems.includes(item.id)}"
+          class="cust-item" @click="currentUser.unlockedItems.includes(item.id) && applySticker(item.id)">
+          <span class="lock" v-if="!currentUser.unlockedItems.includes(item.id)">🔒</span>
+          <div class="swatch">{{ item.val }}</div>{{ item.name }}
+        </div>
+      </div>
+      <button v-if="appliedStickers.length > 0" class="tool-btn" style="margin-top:12px" @click="clearStickers">🧹 清除貼紙</button>
     </div>
   </div>
 
-  <!-- Toast提示 -->
-  <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
-
-  <!-- 導覽列 -->
-  <div class="nav-bar" v-if="currentUser.uid">
-    <button :class="{active: activeTab === 'diary'}" @click="activeTab = 'diary'">📔 日記</button>
-    <button :class="{active: activeTab === 'flowers'}" @click="activeTab = 'flowers'">🌺 花卉</button>
-    <button :class="{active: activeTab === 'community'}" @click="activeTab = 'community'">🌸 社群</button>
-    <button v-if="currentUser.role === 'admin'" :class="{active: activeTab === 'admin'}" @click="activeTab = 'admin'">⚙️ 管理</button>
+  <div class="modal-mask" :class="{open: modalOpen}" @click="if($event.target === $event.currentTarget) modalOpen = false">
+    <div class="modal" v-if="selectedFlower">
+      <div class="big">{{ selectedFlower.img }}</div>
+      <h3 class="hand">{{ selectedFlower.name }}</h3>
+      <p class="word">{{ selectedFlower.word }}</p>
+      <p class="va-line">愉悅度 V:{{ selectedFlower.v }} ・ 能量 A:{{ selectedFlower.a }}</p>
+      <p style="font-size:13px;color:var(--ink-soft);margin-bottom:18px">
+        {{ isRecommendModal ? '這朵花已悄悄收進你的花卉庫存 🌿' : '它正靜靜在你的圖鑑裡綻放。' }}
+      </p>
+      <button class="btn-primary" @click="modalOpen = false">收下這份花語</button>
+    </div>
   </div>
+
+  <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
 </div>
 
-<!-- Petite-Vue -->
-<script src="https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js"><\/script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/petite-vue/0.4.1/petite-vue.iife.min.js"></script>
 
-<script>
-const DEFAULT_FLOWERS = [
-  { name: '向日葵', img: '🌻', word: '信念、光輝與耀眼的愛。代表信心與希望，象徵著永不放棄的勇氣。' },
-  { name: '薰衣草', img: '🪻', word: '等待愛情、內心的寧靜。帶來平和與安寧，撫慰疲憊的心靈。' },
-  { name: '蓮花', img: '🪷', word: '清淨、純潔與出淤泥不染。代表堅韌與高潔，象徵著靈性的覺醒。' },
-  { name: '鬱金香', img: '🌷', word: '優雅、博愛與高貴的承諾。絢麗多彩，代表著熱烈的愛與尊敬。' },
-  { name: '玫瑰', img: '🌹', word: '熱情、愛情與美麗。深層情感的表達，代表著永恆的愛。' },
-  { name: '菊花', img: '🌼', word: '忠誠、長壽與堅定。象徵著品德與尊敬，帶來溫暖與慰藉。' }
-];
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, onSnapshot 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { 
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithCustomToken
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-const MOODS = ['😊 開心', '😔 難過', '😴 疲憊', '😍 甜蜜', '😤 煩躁', '😌 平靜', '😰 焦慮', '😍 感激'];
+  // 填入你的 Firebase 專案設定資訊（放前端是公開且合法的唷！）
+// 箱子是空的，準備等 Vercel 把金鑰裝進來
+    const firebaseConfig = {
+    apiKey: process.env.VITE_FIREBASE_API_KEY,
+    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
+    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.VITE_FIREBASE_APP_ID,
+    measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID
+    };
+  // 初始化 Firebase
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
 
-PetiteVue.createApp({
-  // 認證
-  authMode: 'login',
-  authUsername: '',
-  authPassword: '',
-  currentUser: { uid: '', username: '', nickname: '', role: 'client' },
-  
-  // UI狀態
-  activeTab: 'diary',
-  adminPanel: 'flowers',
-  showDiaryForm: false,
-  showModal: false,
-  selectedFlower: null,
-  toastVisible: false,
-  toastMessage: '',
-  
-  // 數據
-  flowers: [],
-  diaries: [],
-  userPoints: 0,
-  totalDiaries: 0,
-  newFlower: { name: '', img: '', word: '' },
-  newDiary: { content: '', mood: '', photo: '', photoPreview: '', date: '' },
-  moods: MOODS,
+  const NICK_ADJ = ['暗戀的','寧靜的','耀眼的','溫柔的','勇敢的','想念的','微笑的','沉睡的','綻放的','自由的','溫慢的','害羞的'];
+  const NICK_FLOWER = ['向日葵','薰衣草','蓮花','鬱金香','梔子花','風信子','雛菊','鈴蘭','茉莉','山茶','銀蓮','勿忘我'];
+  const NICK_AVATAR = ['🌻','🪻','🪷','🌷','🌼','🌺','🌸','💐','🏵️','🌹'];
 
-  get greetText() {
-    const hour = new Date().getHours();
-    if(hour < 11) return '早安';
-    if(hour >= 18) return '晚安';
-    return '午安';
-  },
+  function generateNickname(){
+    const adj = NICK_ADJ[Math.floor(Math.random()*NICK_ADJ.length)];
+    const fl  = NICK_FLOWER[Math.floor(Math.random()*NICK_FLOWER.length)];
+    const num = String(Math.floor(Math.random()*900)+100);
+    return `${adj}${fl} #${num}`;
+  }
 
-  get reversedDiaries() {
-    return [...this.diaries].reverse();
-  },
+  window.avatarFor = function(nickname) {
+    if(!nickname) return '🌱';
+    let h=0;
+    for(const c of nickname) h=(h*31+c.charCodeAt(0))>>>0;
+    return NICK_AVATAR[h % NICK_AVATAR.length];
+  }
 
-  // ✅ 認證方法
-  async handleAuthSubmit() {
-    if(!this.authUsername || !this.authPassword) {
-      this.showToast('請輸入帳號與密碼 🍂');
-      return;
-    }
+  PetiteVue.createApp({
+    // Auth
+    authMode: 'login',
+    authUsername: '',
+    authPassword: '',
+    authRole: 'client',
+    currentUser: {
+      uid: '',
+      username: '',
+      role: '',
+      nickname: '',
+      points: 500,
+      unlockedItems: ['bg_default']
+    },
 
-    try {
-      const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = window.fbUtils;
-      
-      if(this.authMode === 'register') {
-        const userCredential = await createUserWithEmailAndPassword(window.auth, this.authUsername, this.authPassword);
-        this.currentUser.uid = userCredential.user.uid;
-      } else {
-        const userCredential = await signInWithEmailAndPassword(window.auth, this.authUsername, this.authPassword);
-        this.currentUser.uid = userCredential.user.uid;
+    // Data
+    flowers: [],
+    shopItems: [],
+    diaries: [],
+    communityPosts: [],
+
+    // UI State
+    activeTab: 'diary',
+    adminPanel: 'flowers',
+    drawerOpen: false,
+    modalOpen: false,
+    toastVisible: false,
+    toastMessage: '',
+    isRecommendModal: false,
+
+    // Form Data
+    draftText: '',
+    draftPhoto: null,
+    sliderV: 50,
+    sliderA: 50,
+    publishToommunity: false,
+    appliedBg: '#F5EBE6',
+    appliedStickers: [],
+
+    newFlower: { name: '', img: '🌷', word: '', v: 50, a: 50 },
+    newItem: { name: '', type: 'bg', price: 0, val: '' },
+    selectedFlower: null,
+
+    mounted() {
+      this.initDefaultCollections();
+      this.listenGlobalData();
+    },
+
+    // Computed
+    get greetText() {
+      const hour = new Date().getHours();
+      if(hour < 11) return '早安';
+      if(hour >= 18) return '晚安';
+      return '午安';
+    },
+    get reversedDiaries() { return [...this.diaries].reverse(); },
+    get reversedCommunityPosts() { return [...this.communityPosts].reverse(); },
+
+    // 監聽全域的商店和花卉資料（即時即看！）
+    listenGlobalData() {
+      onSnapshot(collection(db, "flowers"), (snapshot) => {
+        this.flowers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      });
+      onSnapshot(collection(db, "shopItems"), (snapshot) => {
+        this.shopItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      });
+      onSnapshot(collection(db, "communityPosts"), (snapshot) => {
+        this.communityPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      });
+    },
+
+    // 監聽目前登入用戶的個人日記資料
+    listenUserData(uid) {
+      const q = query(collection(db, "diaries"), where("uid", "==", uid));
+      onSnapshot(q, (snapshot) => {
+        this.diaries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      });
+    },
+
+    // 初始化預設花卉和商品（如果資料庫是空的才會塞進去）
+    async initDefaultCollections() {
+      const flowerCheck = await getDocs(collection(db, "flowers"));
+      if(flowerCheck.empty) {
+        const defaultFlowers = [
+          { name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
+          { name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
+          { name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
+          { name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
+        ];
+        for(let f of defaultFlowers) { await addDoc(collection(db, "flowers"), f); }
       }
-      
-      this.currentUser.username = this.authUsername.split('@')[0];
-      this.currentUser.nickname = `用戶 #${Math.floor(Math.random()*1000)}`;
-      this.currentUser.role = 'client';
-      this.authUsername = '';
-      this.authPassword = '';
-      
-      await this.loadData();
-      this.showToast('✅ 登入成功');
-    } catch (error) {
-      console.error('Auth error:', error);
-      this.showToast(`❌ ${error.message}`);
-    }
-  },
 
-  async quickLogin(type) {
-    const demoEmail = type === 'admin' ? `admin${Date.now()}@demo.com` : `user${Date.now()}@demo.com`;
-    const demoPassword = 'demo123456';
-    
-    try {
-      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.fbUtils;
+      const shopCheck = await getDocs(collection(db, "shopItems"));
+      if(shopCheck.empty) {
+        const defaultShop = [
+          { name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
+          { name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
+          { name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
+          { name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
+          { name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
+        ];
+        for(let s of defaultShop) { await addDoc(collection(db, "shopItems"), s); }
+      }
+    },
+
+    // 處理 Firebase 登入與註冊
+    async handleAuthSubmit() {
+      if(!this.authUsername || !this.authPassword){
+        this.showToast('請輸入帳號與密碼 🍂');
+        return;
+      }
+      if(this.authPassword.length < 6) {
+        this.showToast('密碼至少需要 6 位數密碼唷！');
+        return;
+      }
+
+      try {
+        if(this.authMode === 'register') {
+          // 註冊新帳號
+          const credential = await createUserWithEmailAndPassword(auth, this.authUsername, this.authPassword);
+          const uid = credential.user.uid;
+          const userProfile = {
+            username: this.authUsername,
+            role: this.authRole,
+            nickname: generateNickname(),
+            points: 500,
+            unlockedItems: ['bg_default']
+          };
+          // 寫入 Firestore 用戶檔案
+          await setDoc(doc(db, "users", uid), userProfile);
+          this.setupUserSession(uid, userProfile);
+        } else {
+          // 登入
+          const credential = await signInWithEmailAndPassword(auth, this.authUsername, this.authPassword);
+          const uid = credential.user.uid;
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if(userDoc.exists()) {
+            this.setupUserSession(uid, userDoc.data());
+          }
+        }
+      } catch(err) {
+        this.showToast(`認證失敗: ${err.message}`);
+      }
+    },
+
+    // 快速測試登入
+    async quickLogin(role) {
+      const demoEmail = role === 'admin' ? 'admin001@test.com' : 'user123@test.com';
+      this.authUsername = demoEmail;
+      this.authPassword = "password123";
+      this.authRole = role;
       
       try {
-        await signInWithEmailAndPassword(window.auth, demoEmail, demoPassword);
-      } catch (e) {
-        // 帳號不存在，先創建
-        await createUserWithEmailAndPassword(window.auth, demoEmail, demoPassword);
-        await signInWithEmailAndPassword(window.auth, demoEmail, demoPassword);
+        await this.handleAuthSubmit();
+      } catch(e) {
+        // 如果 Demo 帳號不存在就順便自動幫忙建立
+        this.authMode = 'register';
+        await this.handleAuthSubmit();
       }
-      
-      this.currentUser.uid = window.auth.currentUser.uid;
-      this.currentUser.username = type === 'admin' ? 'admin001' : 'user123';
-      this.currentUser.nickname = type === 'admin' ? '管理員' : '一般用戶';
-      this.currentUser.role = type === 'admin' ? 'admin' : 'client';
-      
-      await this.loadData();
-      this.showToast('✅ Demo登入成功');
-    } catch (error) {
-      console.error('Demo login error:', error);
-      this.showToast(`❌ Demo登入失敗: ${error.message}`);
-    }
-  },
+    },
 
-  async loadData() {
-    try {
-      // 加載花卉 - 使用Firebase或本地預設
-      if(window.db) {
-        const flowersSnap = await window.fbUtils.getDocs(window.fbUtils.collection(window.db, 'flowers'));
-        if(flowersSnap.empty) {
-          // 初始化預設花卉
-          for(const flower of DEFAULT_FLOWERS) {
-            await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'flowers'), flower);
-          }
-          this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `default-${i}`, ...f }));
-        } else {
-          this.flowers = flowersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        }
-        
-        // 加載當前用戶的日記
-        const diariesQuery = window.fbUtils.query(
-          window.fbUtils.collection(window.db, 'diaries'),
-          window.fbUtils.where('uid', '==', this.currentUser.uid)
-        );
-        const diariesSnap = await window.fbUtils.getDocs(diariesQuery);
-        this.diaries = diariesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        this.totalDiaries = this.diaries.length;
-      } else {
-        // 本地Fallback
-        this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `local-${i}`, ...f }));
-        this.diaries = [];
-      }
-      
-      console.log('✅ 數據加載完成');
-    } catch (error) {
-      console.error('❌ 加載失敗:', error);
-      this.showToast('❌ 加載失敗，使用本地數據');
-      this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `fallback-${i}`, ...f }));
-    }
-  },
+    setupUserSession(uid, profile) {
+      this.currentUser = { uid, ...profile };
+      this.appliedBg = '#F5EBE6';
+      this.appliedStickers = [];
+      this.authUsername = '';
+      this.authPassword = '';
+      this.listenUserData(uid);
+      this.showToast(`歡迎進入花語世界，${this.currentUser.nickname} ✨`);
+    },
 
-  // ✅ 日記方法
-  handlePhotoUpload(event) {
-    const file = event.target.files[0];
-    if(!file) return;
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      this.newDiary.photoPreview = e.target.result;
-      this.newDiary.photo = e.target.result; // 暫時用Base64，生產環境改用Firebase Storage
-    };
-    reader.readAsDataURL(file);
-  },
-
-  async saveDiary() {
-    if(!this.newDiary.content.trim()) {
-      this.showToast('日記內容不能為空 🍂');
-      return;
-    }
-
-    try {
-      const diaryData = {
-        uid: this.currentUser.uid,
-        username: this.currentUser.username,
-        content: this.newDiary.content,
-        mood: this.newDiary.mood,
-        photo: this.newDiary.photo,
-        date: new Date().toISOString(),
-        timestamp: window.fbUtils.serverTimestamp()
-      };
-
-      if(window.db) {
-        await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'diaries'), diaryData);
-      }
-
-      // 加到本地
-      this.diaries = [...this.diaries, { id: `local-${Date.now()}`, ...diaryData }];
-      this.userPoints += 10; // 獎勵積分
-      this.totalDiaries += 1;
-
-      this.newDiary = { content: '', mood: '', photo: '', photoPreview: '', date: '' };
-      this.showDiaryForm = false;
-      this.showToast('✅ 日記已保存 (+10 points)');
-    } catch (error) {
-      console.error('Save diary error:', error);
-      this.showToast('❌ 保存失敗');
-    }
-  },
-
-  async deleteDiary(id) {
-    if(!confirm('確認刪除這篇日記嗎？')) return;
-
-    try {
-      if(window.db && !id.startsWith('local-')) {
-        await window.fbUtils.deleteDoc(window.fbUtils.doc(window.db, 'diaries', id));
-      }
-      
-      this.diaries = this.diaries.filter(d => d.id !== id);
-      this.totalDiaries -= 1;
-      this.showToast('✅ 已刪除');
-    } catch (error) {
-      console.error('Delete error:', error);
-      this.showToast('❌ 刪除失敗');
-    }
-  },
-
-  formatDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('zh-Hant-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
-  },
-
-  // ✅ 花卉方法
-  showFlowerModal(flower) {
-    this.selectedFlower = flower;
-    this.showModal = true;
-  },
-
-  async addFlower() {
-    if(!this.newFlower.name || !this.newFlower.img || !this.newFlower.word) {
-      this.showToast('請填入所有欄位 🌸');
-      return;
-    }
-
-    try {
-      const flowerData = {
-        name: this.newFlower.name,
-        img: this.newFlower.img,
-        word: this.newFlower.word
-      };
-
-      if(window.db) {
-        const docRef = await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'flowers'), flowerData);
-        this.flowers = [...this.flowers, { id: docRef.id, ...flowerData }];
-      } else {
-        this.flowers = [...this.flowers, { id: `local-${Date.now()}`, ...flowerData }];
-      }
-
-      this.newFlower = { name: '', img: '', word: '' };
-      this.showToast('✅ 花卉已新增');
-    } catch (error) {
-      console.error('Add flower error:', error);
-      this.showToast('❌ 新增失敗');
-    }
-  },
-
-  async deleteFlower(id) {
-    if(!confirm('確認刪除這種花卉嗎？')) return;
-
-    try {
-      if(window.db && !id.startsWith('local-') && !id.startsWith('fallback-')) {
-        await window.fbUtils.deleteDoc(window.fbUtils.doc(window.db, 'flowers', id));
-      }
-      
-      this.flowers = this.flowers.filter(f => f.id !== id);
-      this.showToast('✅ 已刪除');
-    } catch (error) {
-      console.error('Delete flower error:', error);
-      this.showToast('❌ 刪除失敗');
-    }
-  },
-
-  // ✅ 登出
-  async logout() {
-    try {
-      if(window.auth) {
-        await window.fbUtils.signOut(window.auth);
-      }
-      this.currentUser = { uid: '', username: '', nickname: '', role: 'client' };
+    async logout() {
+      await signOut(auth);
+      this.currentUser = { uid: '', username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
+      this.draftPhoto = null;
+      this.draftText = '';
       this.diaries = [];
-      this.userPoints = 0;
-      this.showToast('✅ 已登出');
-    } catch (error) {
-      console.error('Logout error:', error);
+      this.activeTab = 'diary';
+      this.showToast('已登出囉 👋');
+    },
+
+    triggerPhotoInput() {
+      const photoInput = document.querySelector('#photo-input');
+      if(photoInput) photoInput.click();
+    },
+
+    handlePhotoUpload(e) {
+      const file = e.target.files[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        this.draftPhoto = ev.target.result;
+        this.showToast('照片已貼進手帳內頁 📷');
+      };
+      reader.readAsDataURL(file);
+    },
+
+    recommendFlower(userV, userA) {
+      let best = null, bestDist = Infinity;
+      for(const f of this.flowers){
+        const dist = Math.sqrt(Math.pow(userV - f.v, 2) + Math.pow(userA - f.a, 2));
+        if(dist < bestDist){ bestDist = dist; best = f; }
+      }
+      return best;
+    },
+
+    async recordMood() {
+      if(!this.draftText.trim()){
+        this.showToast('先寫下今天的心情文字吧 🍂');
+        return;
+      }
+      const flower = this.recommendFlower(this.sliderV, this.sliderA);
+      if(!flower) {
+        this.showToast('圖鑑裡還沒有花朵，請管理員先去後台生一朵花花 🌸');
+        return;
+      }
+
+      const entry = {
+        uid: this.currentUser.uid,
+        text: this.draftText,
+        date: new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+        flower: { id: flower.id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
+        photo: this.draftPhoto,
+        stickers: [...this.appliedStickers],
+        isAnonymous: this.publishToommunity
+      };
+
+      // 儲存日記到雲端
+      await addDoc(collection(db, "diaries"), entry);
+
+      // 解鎖對應的花卉
+      if(!this.currentUser.unlockedItems.includes('flower-' + flower.id)){
+        this.currentUser.unlockedItems.push('flower-' + flower.id);
+        await updateDoc(doc(db, "users", this.currentUser.uid), {
+          unlockedItems: this.currentUser.unlockedItems
+        });
+      }
+
+      // 如果勾選分享到社群廣場
+      if(this.publishToommunity){
+        const communityPost = {
+          nickname: this.currentUser.nickname,
+          text: this.draftText,
+          photo: this.draftPhoto,
+          flower: { id: flower.id, name: flower.name, img: flower.img },
+          date: entry.date,
+          hugs: 0,
+          flowersGiven: 0,
+          huggedBy: []
+        };
+        await addDoc(collection(db, "communityPosts"), communityPost);
+      }
+
+      this.draftPhoto = null;
+      this.draftText = '';
+      this.sliderV = 50;
+      this.sliderA = 50;
+      this.publishToommunity = false;
+      this.showFlowerModal(flower.id, true);
+    },
+
+    showFlowerModal(flowerId, isRecommend) {
+      this.selectedFlower = this.flowers.find(f => f.id === flowerId) || (this.diaries.find(d => d.flower.id === flowerId)?.flower);
+      this.isRecommendModal = isRecommend || false;
+      this.modalOpen = true;
+    },
+
+    async buyItem(itemId) {
+      const item = this.shopItems.find(x => x.id === itemId);
+      if(!item) return;
+      if(this.currentUser.unlockedItems.includes(itemId)) return;
+      if(this.currentUser.points < item.price){
+        this.selectedFlower = { img: '🍃', name: '點數還在路上', word: `需要 ${item.price} 點，目前只有 ${this.currentUser.points} 點。`, v: 0, a: 0 };
+        this.isRecommendModal = false;
+        this.modalOpen = true;
+        return;
+      }
+      
+      this.currentUser.points -= item.price;
+      this.currentUser.unlockedItems.push(itemId);
+      
+      // 同步扣點與解鎖到 Firebase
+      await updateDoc(doc(db, "users", this.currentUser.uid), {
+        points: this.currentUser.points,
+        unlockedItems: this.currentUser.unlockedItems
+      });
+
+      this.showToast(`已成功購買「${item.name}」🎨`);
+    },
+
+    applyBackground(itemId) {
+      const item = this.shopItems.find(x => x.id === itemId);
+      if(item) this.appliedBg = item.val;
+    },
+
+    applySticker(itemId) {
+      const item = this.shopItems.find(x => x.id === itemId);
+      if(item) this.appliedStickers.push(item.val);
+    },
+
+    clearStickers() { this.appliedStickers = []; },
+    openDrawer() { this.drawerOpen = true; },
+    closeDrawer() { this.drawerOpen = false; },
+
+    // 管理員功能：上架花卉到 Firestore
+    async addFlower() {
+      if(!this.newFlower.name || !this.newFlower.name.trim()) {
+        this.showToast('請填寫花卉名稱 📝');
+        return;
+      }
+      if(!this.newFlower.word || !this.newFlower.word.trim()) {
+        this.showToast('請填寫花語 🌸');
+        return;
+      }
+      
+      const flower = {
+        name: this.newFlower.name, 
+        word: this.newFlower.word,
+        v: Math.max(0, Math.min(100, this.newFlower.v)), 
+        a: Math.max(0, Math.min(100, this.newFlower.a)),
+        img: this.newFlower.img || '🌷'
+      };
+      
+      await addDoc(collection(db, "flowers"), flower);
+      this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
+      this.showToast('成功雲端上架新花卉！🌸');
+    },
+
+    async deleteFlower(flowerId) {
+      if(!confirm('確定刪除？')) return;
+      await deleteDoc(doc(db, "flowers", flowerId));
+      this.showToast('花卉已自雲端下架 🗑️');
+    },
+
+    // 管理員功能：上架商品到 Firestore
+    async addItem() {
+      if(!this.newItem.name || !this.newItem.name.trim()) {
+        this.showToast('請填寫商品名稱 📝');
+        return;
+      }
+      if(!this.newItem.val || !this.newItem.val.trim()) {
+        this.showToast('請填寫內容值（顏色/漸層/貼紙） 🎨');
+        return;
+      }
+      
+      const item = {
+        type: this.newItem.type, 
+        name: this.newItem.name, 
+        price: Math.max(0, this.newItem.price), 
+        val: this.newItem.val
+      };
+      
+      await addDoc(collection(db, "shopItems"), item);
+      this.newItem = { name: '', type: 'bg', price: 0, val: '' };
+      this.showToast('成功雲端上架新商品！🛍️');
+    },
+
+    async deleteItem(itemId) {
+      if(!confirm('確定刪除？')) return;
+      await deleteDoc(doc(db, "shopItems", itemId));
+      this.showToast('商品已從商店下架 🗑️');
+    },
+
+    // 社群擁抱功能
+    async giveHug(postId) {
+      const postRef = doc(db, "communityPosts", postId);
+      const postSnapshot = await getDoc(postRef);
+      if(postSnapshot.exists()) {
+        const data = postSnapshot.data();
+        let huggedBy = data.huggedBy || [];
+        let currentHugs = data.hugs || 0;
+        
+        if(huggedBy.includes(this.currentUser.uid)) {
+          this.showToast('你已經給過溫暖的擁抱囉 🫂');
+          return;
+        }
+        huggedBy.push(this.currentUser.uid);
+        await updateDoc(postRef, {
+          hugs: currentHugs + 1,
+          huggedBy: huggedBy
+        });
+      }
+    },
+
+    // 社群送花功能
+    async giveFlower(postId) {
+      const postRef = doc(db, "communityPosts", postId);
+      const postSnapshot = await getDoc(postRef);
+      if(postSnapshot.exists()) {
+        const currentFlowers = postSnapshot.data().flowersGiven || 0;
+        await updateDoc(postRef, { flowersGiven: currentFlowers + 1 });
+      }
+    },
+
+    showToast(msg) {
+      this.toastMessage = msg; this.toastVisible = true;
+      setTimeout(() => this.toastVisible = false, 2600);
     }
-  },
-
-  showToast(msg) {
-    this.toastMessage = msg;
-    this.toastVisible = true;
-    setTimeout(() => { this.toastVisible = false; }, 3000);
-  }
-}).mount('#app');
-
-console.log('✅ 應用已初始化 - Flower Language v2.0');
+  }).mount('#app');
 </script>
+
 </body>
 </html>
