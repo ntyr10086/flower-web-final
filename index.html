@@ -5,31 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Flower Language 花語心情手帳</title>
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK v10.7.0 -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-  import { getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { 
+    getFirestore, collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
+    query, where, serverTimestamp, setDoc, writeBatch, onSnapshot
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { 
+    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+    onAuthStateChanged, signOut 
+  } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js";
 
+  // 🔒 Firebase配置 - 改用環境變數（部署時替換）
   const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "YOUR_KEY",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "YOUR_DOMAIN",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "YOUR_PROJECT",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "YOUR_BUCKET",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "YOUR_ID",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "YOUR_APP"
+    apiKey: "AIzaSyB56gmNnVcT_vogKfZE04oSfLUgUMKu52c",
+    authDomain: "flower-language-app.firebaseapp.com",
+    projectId: "flower-language-app",
+    storageBucket: "flower-language-app.firebasestorage.app",
+    messagingSenderId: "509334232078",
+    appId: "1:509334232078:web:50a779494d6812b67df05f"
   };
 
-  const app = initializeApp(firebaseConfig);
-  window.db = getFirestore(app);
-  window.auth = getAuth(app);
-  window.fbUtils = { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where, serverTimestamp, setDoc, writeBatch, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut };
-  console.log('✅ Firebase initialized');
+  try {
+    const app = initializeApp(firebaseConfig);
+    window.db = getFirestore(app);
+    window.auth = getAuth(app);
+    window.storage = getStorage(app);
+    window.fbUtils = { 
+      collection, getDocs, addDoc, updateDoc, deleteDoc, doc, 
+      query, where, serverTimestamp, setDoc, writeBatch, onSnapshot,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword, 
+      onAuthStateChanged, signOut, ref, uploadBytes, getDownloadURL
+    };
+    console.log('✅ Firebase initialized');
+  } catch (error) {
+    console.error('❌ Firebase init error:', error);
+  }
 </script>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg-paper:  #FDFBF7;
@@ -51,7 +70,9 @@ html,body{height:100%}
 body{
   font-family:"Noto Serif TC",serif;
   color:var(--ink);
-  background: radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%), radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%), var(--bg-paper);
+  background: radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%), 
+              radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%), 
+              var(--bg-paper);
   background-attachment:fixed;
   line-height:1.7;
   -webkit-font-smoothing:antialiased;
@@ -64,7 +85,7 @@ body::before{
 }
 
 .hand{font-family:"Long Cang","Gaegu",cursive}
-button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;padding:0}
 input,textarea,select{font-family:inherit}
 img{max-width:100%;display:block}
 
@@ -86,19 +107,29 @@ img{max-width:100%;display:block}
 .brand .logo{font-size:46px;filter:drop-shadow(0 6px 10px var(--shadow))}
 .brand h1{font-size:30px;letter-spacing:1px;color:var(--primary-brown)}
 .brand .sub{color:var(--ink-soft);font-size:14px;letter-spacing:3px}
+
 .tab-switch{display:flex;background:var(--bg-cream);border-radius:999px;padding:5px;margin:24px 0 18px}
 .tab-switch button{flex:1;padding:9px 0;border-radius:999px;color:var(--ink-soft);font-weight:600;transition:.25s}
 .tab-switch button.active{background:var(--primary-orange);color:#fff;box-shadow:0 4px 12px var(--shadow)}
+
 .field{margin-bottom:14px}
 .field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px;letter-spacing:1px}
 .field input{width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font-size:15px;transition:.2s}
 .field input:focus{outline:none;border-color:var(--primary-orange);box-shadow:0 0 0 3px rgba(230,161,92,.18)}
+
 .btn-primary{width:100%;padding:13px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;letter-spacing:2px;background:linear-gradient(135deg,var(--primary-orange),var(--accent-rose));box-shadow:0 8px 20px var(--shadow);transition:.2s;cursor:pointer}
 .btn-primary:hover{opacity:.9}
+.btn-primary:active{transform:scale(.98)}
+
+.demo-buttons{text-align:center;margin-top:20px}
+.demo-btn{color:var(--ink-soft);text-decoration:underline;cursor:pointer;border:none;background:none;font-size:13px;margin-top:10px;transition:.2s}
+.demo-btn:hover{color:var(--primary-orange)}
 
 /* 主應用 */
-.top-bar{position:relative;z-index:20;padding:20px;display:flex;justify-content:space-between;align-items:center;background:rgba(253,251,247,.8);backdrop-filter:blur(8px);box-shadow:0 2px 8px var(--shadow)}
+.top-bar{position:relative;z-index:20;padding:20px;display:flex;justify-content:space-between;align-items:center;background:rgba(253,251,247,.85);backdrop-filter:blur(8px);box-shadow:0 2px 8px var(--shadow)}
 .greet{font-size:16px;font-weight:600;color:var(--primary-brown)}
+.user-info{display:flex;align-items:center;gap:16px}
+.points-badge{background:var(--primary-orange);color:#fff;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:600}
 .logout-btn{padding:8px 16px;background:var(--bg-cream);border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--ink);transition:.2s}
 .logout-btn:hover{background:var(--accent-rose);color:#fff}
 
@@ -129,26 +160,64 @@ img{max-width:100%;display:block}
 }
 .nav-bar button.active{background:var(--bg-cream);color:var(--primary-orange)}
 
+/* 日記表單 */
+.form-group{background:white;padding:20px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
+.form-group label{display:block;font-weight:600;color:var(--primary-brown);margin-bottom:8px;font-size:14px}
+.form-group textarea{width:100%;padding:12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;resize:vertical;min-height:120px}
+.form-group input[type="file"]{padding:8px;border:1.5px dashed var(--line);border-radius:10px;width:100%}
+.form-group .mood-options{display:flex;gap:10px;flex-wrap:wrap}
+.mood-btn{padding:8px 16px;border:1.5px solid var(--line);border-radius:10px;cursor:pointer;transition:.2s;font-size:14px}
+.mood-btn.active{background:var(--primary-orange);color:#fff;border-color:var(--primary-orange)}
+
+.photo-preview{margin-top:12px;border-radius:10px;overflow:hidden;max-width:100%}
+.photo-preview img{width:100%;display:block}
+
+/* 日記卡片 */
+.diary-card{background:white;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)}
+.diary-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.diary-date{font-weight:600;color:var(--primary-brown)}
+.diary-mood{font-size:12px;background:var(--bg-cream);padding:4px 8px;border-radius:6px;color:var(--ink-soft)}
+.diary-content{color:var(--ink);margin-bottom:12px;line-height:1.6}
+.diary-photo{margin:12px 0;border-radius:8px;overflow:hidden}
+.diary-photo img{width:100%;display:block}
+.diary-actions{display:flex;gap:8px;padding-top:12px;border-top:1px solid var(--line)}
+.diary-delete{padding:6px 12px;background:var(--accent-rose);color:#fff;border-radius:8px;font-size:12px;cursor:pointer;transition:.2s}
+.diary-delete:hover{opacity:.8}
+
+/* 花卉卡片 */
+.flower-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.flower-card{background:white;padding:16px;border-radius:12px;text-align:center;box-shadow:0 2px 8px var(--shadow);cursor:pointer;transition:.2s}
+.flower-card:hover{transform:translateY(-4px);box-shadow:0 6px 16px var(--shadow)}
+.flower-emoji{font-size:36px;margin-bottom:8px}
+.flower-name{font-weight:600;color:var(--primary-brown);margin-bottom:4px}
+.flower-word{font-size:12px;color:var(--ink-soft);line-height:1.4}
+
 /* 管理面板 */
 .admin-tabs{display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap}
 .admin-tabs button{padding:10px 18px;border-radius:10px;background:var(--bg-cream);border:1px solid var(--line);color:var(--primary-brown);font-weight:600;font-size:14px;transition:.2s;cursor:pointer}
 .admin-tabs button.active{background:var(--primary-brown);color:#fff}
 
 .admin-list{margin-top:24px;display:grid;gap:10px}
-.admin-row{display:flex;align-items:center;gap:14px;background:var(--bg-paper);border:1px solid #EFE3D5;border-radius:10px;padding:12px 16px;box-shadow:0 6px 16px var(--shadow);position:relative}
+.admin-row{display:flex;align-items:center;gap:14px;background:var(--bg-paper);border:1px solid #EFE3D5;border-radius:10px;padding:12px 16px;box-shadow:0 2px 8px var(--shadow)}
 .admin-row .info{flex:1}
 .admin-row .info b{color:var(--primary-brown)}
-.delete-btn{padding:6px 12px;border-radius:8px;background:var(--accent-rose);color:#fff;font-weight:600;font-size:12px;cursor:pointer}
+.delete-btn{padding:6px 12px;border-radius:8px;background:var(--accent-rose);color:#fff;font-weight:600;font-size:12px;cursor:pointer;transition:.2s}
+.delete-btn:hover{opacity:.8}
 
 .loading{text-align:center;padding:40px;color:var(--ink-soft)}
 .empty-hint{text-align:center;color:var(--ink-soft);padding:50px 20px;font-size:15px}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center}
+.modal.show{display:flex}
+.modal-content{background:white;padding:30px;border-radius:16px;max-width:500px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:24px;cursor:pointer;color:var(--ink-soft)}
 </style>
 </head>
 <body>
 
 <div id="app" v-scope>
   <!-- 登入 -->
-  <div id="auth-screen" v-if="!currentUser.username">
+  <div id="auth-screen" v-if="!currentUser.uid">
     <div class="auth-card">
       <div class="brand">
         <div class="logo">🌼</div>
@@ -162,59 +231,85 @@ img{max-width:100%;display:block}
       </div>
 
       <div class="field">
-        <label>帳號</label>
-        <input v-model="authUsername" type="text" placeholder="輸入您的帳號" />
+        <label>帳號（Email）</label>
+        <input v-model="authUsername" type="email" placeholder="example@email.com" />
       </div>
       <div class="field">
         <label>密碼</label>
-        <input v-model="authPassword" type="password" placeholder="輸入您的密碼" />
+        <input v-model="authPassword" type="password" placeholder="至少6個字符" />
       </div>
 
-      <button class="btn-primary" @click="handleAuthSubmit">{{ authMode === 'login' ? '進入手帳' : '建立帳號' }}</button>
+      <button class="btn-primary" @click="handleAuthSubmit">
+        {{ authMode === 'login' ? '進入手帳' : '建立帳號' }}
+      </button>
 
-      <div style="text-align:center;margin-top:20px">
-        <button style="color:var(--ink-soft);text-decoration:underline;cursor:pointer;border:none;background:none;font-size:13px" @click="quickLogin('admin')">
-          🛠 管理員Demo
-        </button>
-        <br>
-        <button style="color:var(--ink-soft);text-decoration:underline;cursor:pointer;border:none;background:none;font-size:13px;margin-top:10px" @click="quickLogin('user')">
-          🌿 一般用戶Demo
-        </button>
+      <div class="demo-buttons">
+        <p style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">📌 快速Demo登入：</p>
+        <button class="demo-btn" @click="quickLogin('admin')">🛠 管理員</button>
+        <button class="demo-btn" @click="quickLogin('user')">🌿 一般用戶</button>
       </div>
     </div>
   </div>
 
   <!-- 主應用 -->
-  <div v-if="currentUser.username">
+  <div v-if="currentUser.uid">
     <div class="top-bar">
       <div class="greet">{{ greetText }}，{{ currentUser.nickname }} 🍂</div>
-      <button class="logout-btn" @click="logout">登出</button>
+      <div class="user-info">
+        <div class="points-badge">🌸 {{ userPoints }} points</div>
+        <button class="logout-btn" @click="logout">登出</button>
+      </div>
     </div>
 
     <!-- 日記頁 -->
     <section class="view" v-if="activeTab === 'diary'">
       <h2 class="view-title hand">📔 手帳日記</h2>
       <p class="view-sub">記錄今天的心情與故事</p>
-      <div v-if="diaries.length === 0" class="empty-hint">還沒有日記呢，開始寫第一篇吧 📝</div>
-      <div v-for="diary in reversedDiaries" :key="diary._id" style="background:white;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)">
-        <div style="font-weight:600;color:var(--primary-brown);margin-bottom:8px">{{ diary.date }}</div>
-        <div style="color:var(--ink);margin-bottom:8px">{{ diary.content }}</div>
-        <div v-if="diary.photo" style="margin-bottom:8px">
-          <img :src="diary.photo" style="max-width:100%;border-radius:8px" />
-        </div>
-        <div style="font-size:13px;color:var(--ink-soft)">心情：{{ diary.mood || '未設定' }}</div>
+      
+      <div class="form-group" v-if="!showDiaryForm" style="text-align:center;padding:30px">
+        <button class="btn-primary" @click="showDiaryForm = true" style="width:auto;padding:12px 28px">+ 新增日記</button>
       </div>
-    </section>
 
-    <!-- 社群頁 -->
-    <section class="view" v-if="activeTab === 'community'">
-      <h2 class="view-title hand">🌸 社群分享</h2>
-      <p class="view-sub">與他人分享你的故事</p>
-      <div v-if="communityPosts.length === 0" class="empty-hint">還沒有分享，成為第一個吧 💬</div>
-      <div v-for="post in reversedCommunityPosts" :key="post._id" style="background:white;padding:16px;border-radius:12px;margin-bottom:16px;box-shadow:0 2px 8px var(--shadow)">
-        <div style="font-weight:600;color:var(--primary-brown);margin-bottom:4px">{{ post.nickname }}</div>
-        <div style="color:var(--ink);margin-bottom:8px">{{ post.content }}</div>
-        <div style="font-size:13px;color:var(--ink-soft)">{{ post.timestamp }}</div>
+      <div class="form-group" v-if="showDiaryForm">
+        <label>心情選擇</label>
+        <div class="mood-options">
+          <button v-for="mood in moods" :key="mood" 
+            :class="{active: newDiary.mood === mood}" 
+            class="mood-btn" 
+            @click="newDiary.mood = mood">
+            {{ mood }}
+          </button>
+        </div>
+
+        <label style="margin-top:16px">日記內容</label>
+        <textarea v-model="newDiary.content" placeholder="分享你的故事..."></textarea>
+
+        <label style="margin-top:16px">上傳照片</label>
+        <input type="file" accept="image/*" @change="handlePhotoUpload">
+        <div v-if="newDiary.photoPreview" class="photo-preview">
+          <img :src="newDiary.photoPreview" />
+          <button @click="newDiary.photo = ''; newDiary.photoPreview = ''" style="width:100%;padding:8px;background:var(--accent-rose);color:#fff;cursor:pointer;border-radius:0 0 10px 10px">刪除照片</button>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:16px">
+          <button class="btn-primary" @click="saveDiary" style="flex:1">保存日記</button>
+          <button class="btn-primary" @click="showDiaryForm = false" style="flex:1;background:var(--bg-cream);color:var(--ink)">取消</button>
+        </div>
+      </div>
+
+      <div v-if="diaries.length === 0 && !showDiaryForm" class="empty-hint">還沒有日記呢，開始寫第一篇吧 📝</div>
+      <div v-for="diary in reversedDiaries" :key="diary.id" class="diary-card">
+        <div class="diary-card-header">
+          <span class="diary-date">{{ formatDate(diary.date) }}</span>
+          <span class="diary-mood">{{ diary.mood || '未設定' }}</span>
+        </div>
+        <div class="diary-content">{{ diary.content }}</div>
+        <div v-if="diary.photo" class="diary-photo">
+          <img :src="diary.photo" />
+        </div>
+        <div class="diary-actions">
+          <button class="diary-delete" @click="deleteDiary(diary.id)">刪除</button>
+        </div>
       </div>
     </section>
 
@@ -223,51 +318,89 @@ img{max-width:100%;display:block}
       <h2 class="view-title hand">🌺 花卉百科</h2>
       <p class="view-sub">認識花語，找到共鳴</p>
       <div v-if="flowers.length === 0" class="loading">加載中...</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px">
-        <div v-for="flower in flowers" :key="flower._id" style="background:white;padding:16px;border-radius:12px;text-align:center;box-shadow:0 2px 8px var(--shadow);cursor:pointer" @click="showFlowerModal(flower)">
-          <div style="font-size:36px;margin-bottom:8px">{{ flower.img }}</div>
-          <div style="font-weight:600;color:var(--primary-brown);margin-bottom:4px">{{ flower.name }}</div>
-          <div style="font-size:12px;color:var(--ink-soft)">{{ flower.word }}</div>
+      <div class="flower-grid">
+        <div v-for="flower in flowers" :key="flower.id" class="flower-card" @click="showFlowerModal(flower)">
+          <div class="flower-emoji">{{ flower.img }}</div>
+          <div class="flower-name">{{ flower.name }}</div>
+          <div class="flower-word">{{ flower.word }}</div>
         </div>
       </div>
     </section>
 
-    <!-- 管理後台 (僅限管理員) -->
+    <!-- 社群分享 -->
+    <section class="view" v-if="activeTab === 'community'">
+      <h2 class="view-title hand">🌸 社群分享</h2>
+      <p class="view-sub">與他人分享你的故事（開發中...）</p>
+      <div class="empty-hint">社群功能即將上線 💬</div>
+    </section>
+
+    <!-- 管理後台 -->
     <section class="view" v-if="activeTab === 'admin' && currentUser.role === 'admin'">
       <h2 class="view-title hand">⚙️ 管理後台</h2>
       
       <div class="admin-tabs">
         <button :class="{active: adminPanel === 'flowers'}" @click="adminPanel = 'flowers'">花卉管理</button>
-        <button :class="{active: adminPanel === 'items'}" @click="adminPanel = 'items'">商品管理</button>
+        <button :class="{active: adminPanel === 'users'}" @click="adminPanel = 'users'">用戶統計</button>
       </div>
 
       <!-- 花卉管理 -->
       <div v-if="adminPanel === 'flowers'">
-        <div style="background:white;padding:16px;border-radius:12px;margin-bottom:20px">
+        <div class="form-group">
           <h3 style="margin-bottom:16px;color:var(--primary-brown)">新增花卉</h3>
           <input v-model="newFlower.name" placeholder="花卉名稱" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px" />
-          <input v-model="newFlower.img" placeholder="花卉符號" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px" />
-          <textarea v-model="newFlower.word" placeholder="花語" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px;min-height:60px"></textarea>
+          <input v-model="newFlower.img" placeholder="花卉符號（如🌻）" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px" />
+          <textarea v-model="newFlower.word" placeholder="花語描述" style="width:100%;padding:10px;margin-bottom:10px;border:1px solid var(--line);border-radius:8px;min-height:60px"></textarea>
           <button class="btn-primary" @click="addFlower">新增花卉</button>
         </div>
 
-        <h3 style="margin-bottom:16px;color:var(--primary-brown)">已有花卉</h3>
+        <h3 style="margin-bottom:16px;color:var(--primary-brown)">已有花卉清單</h3>
         <div class="admin-list">
-          <div v-for="flower in flowers" :key="flower._id" class="admin-row">
+          <div v-for="flower in flowers" :key="flower.id" class="admin-row">
             <div style="font-size:28px">{{ flower.img }}</div>
             <div class="info">
               <b>{{ flower.name }}</b>
               <small style="display:block;color:var(--ink-soft);font-size:12px">{{ flower.word }}</small>
             </div>
-            <button class="delete-btn" @click="deleteFlower(flower._id)">刪除</button>
+            <button class="delete-btn" @click="deleteFlower(flower.id)">刪除</button>
           </div>
+        </div>
+      </div>
+
+      <!-- 用戶統計 -->
+      <div v-if="adminPanel === 'users'">
+        <div class="form-group">
+          <h3 style="color:var(--primary-brown);margin-bottom:16px">📊 應用統計</h3>
+          <p style="margin-bottom:8px"><b>總日記數：</b> {{ totalDiaries }}</p>
+          <p style="margin-bottom:8px"><b>花卉庫存：</b> {{ flowers.length }} 種</p>
+          <p><b>當前用戶：</b> {{ currentUser.nickname }}</p>
         </div>
       </div>
     </section>
   </div>
 
-  <!-- Toast -->
+  <!-- 花卉詳情Modal -->
+  <div class="modal" :class="{show: showModal}">
+    <div class="modal-content">
+      <button class="modal-close" @click="showModal = false">✕</button>
+      <div v-if="selectedFlower" style="text-align:center">
+        <div style="font-size:64px;margin-bottom:16px">{{ selectedFlower.img }}</div>
+        <h2 style="color:var(--primary-brown);margin-bottom:8px;font-size:24px">{{ selectedFlower.name }}</h2>
+        <p style="color:var(--ink);font-size:16px;line-height:1.6">{{ selectedFlower.word }}</p>
+        <button class="btn-primary" style="margin-top:20px" @click="showModal = false">關閉</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast提示 -->
   <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
+
+  <!-- 導覽列 -->
+  <div class="nav-bar" v-if="currentUser.uid">
+    <button :class="{active: activeTab === 'diary'}" @click="activeTab = 'diary'">📔 日記</button>
+    <button :class="{active: activeTab === 'flowers'}" @click="activeTab = 'flowers'">🌺 花卉</button>
+    <button :class="{active: activeTab === 'community'}" @click="activeTab = 'community'">🌸 社群</button>
+    <button v-if="currentUser.role === 'admin'" :class="{active: activeTab === 'admin'}" @click="activeTab = 'admin'">⚙️ 管理</button>
+  </div>
 </div>
 
 <!-- Petite-Vue -->
@@ -275,27 +408,40 @@ img{max-width:100%;display:block}
 
 <script>
 const DEFAULT_FLOWERS = [
-  { name: '向日葵', img: '🌻', word: '信念、光輝與耀眼的愛' },
-  { name: '薰衣草', img: '🪻', word: '等待愛情、內心的寧靜' },
-  { name: '蓮花', img: '🪷', word: '清淨、純潔與出淤泥不染' },
-  { name: '鬱金香', img: '🌷', word: '優雅、博愛與高貴的承諾' }
+  { name: '向日葵', img: '🌻', word: '信念、光輝與耀眼的愛。代表信心與希望，象徵著永不放棄的勇氣。' },
+  { name: '薰衣草', img: '🪻', word: '等待愛情、內心的寧靜。帶來平和與安寧，撫慰疲憊的心靈。' },
+  { name: '蓮花', img: '🪷', word: '清淨、純潔與出淤泥不染。代表堅韌與高潔，象徵著靈性的覺醒。' },
+  { name: '鬱金香', img: '🌷', word: '優雅、博愛與高貴的承諾。絢麗多彩，代表著熱烈的愛與尊敬。' },
+  { name: '玫瑰', img: '🌹', word: '熱情、愛情與美麗。深層情感的表達，代表著永恆的愛。' },
+  { name: '菊花', img: '🌼', word: '忠誠、長壽與堅定。象徵著品德與尊敬，帶來溫暖與慰藉。' }
 ];
 
+const MOODS = ['😊 開心', '😔 難過', '😴 疲憊', '😍 甜蜜', '😤 煩躁', '😌 平靜', '😰 焦慮', '😍 感激'];
+
 PetiteVue.createApp({
+  // 認證
   authMode: 'login',
   authUsername: '',
   authPassword: '',
-  currentUser: { username: '', nickname: '', role: '' },
+  currentUser: { uid: '', username: '', nickname: '', role: 'client' },
+  
+  // UI狀態
   activeTab: 'diary',
   adminPanel: 'flowers',
-  
-  flowers: [],
-  communityPosts: [],
-  diaries: [],
-  newFlower: { name: '', img: '', word: '' },
-  
+  showDiaryForm: false,
+  showModal: false,
+  selectedFlower: null,
   toastVisible: false,
   toastMessage: '',
+  
+  // 數據
+  flowers: [],
+  diaries: [],
+  userPoints: 0,
+  totalDiaries: 0,
+  newFlower: { name: '', img: '', word: '' },
+  newDiary: { content: '', mood: '', photo: '', photoPreview: '', date: '' },
+  moods: MOODS,
 
   get greetText() {
     const hour = new Date().getHours();
@@ -308,47 +454,177 @@ PetiteVue.createApp({
     return [...this.diaries].reverse();
   },
 
-  get reversedCommunityPosts() {
-    return [...this.communityPosts].reverse();
-  },
-
+  // ✅ 認證方法
   async handleAuthSubmit() {
     if(!this.authUsername || !this.authPassword) {
       this.showToast('請輸入帳號與密碼 🍂');
       return;
     }
-    // 簡單Demo - 直接登入
-    this.currentUser.username = this.authUsername;
-    this.currentUser.nickname = `用戶 #${Math.floor(Math.random()*1000)}`;
-    this.currentUser.role = this.authRole || 'client';
-    this.authUsername = '';
-    this.authPassword = '';
-    await this.loadData();
-    this.showToast('✅ 登入成功');
+
+    try {
+      const { createUserWithEmailAndPassword, signInWithEmailAndPassword } = window.fbUtils;
+      
+      if(this.authMode === 'register') {
+        const userCredential = await createUserWithEmailAndPassword(window.auth, this.authUsername, this.authPassword);
+        this.currentUser.uid = userCredential.user.uid;
+      } else {
+        const userCredential = await signInWithEmailAndPassword(window.auth, this.authUsername, this.authPassword);
+        this.currentUser.uid = userCredential.user.uid;
+      }
+      
+      this.currentUser.username = this.authUsername.split('@')[0];
+      this.currentUser.nickname = `用戶 #${Math.floor(Math.random()*1000)}`;
+      this.currentUser.role = 'client';
+      this.authUsername = '';
+      this.authPassword = '';
+      
+      await this.loadData();
+      this.showToast('✅ 登入成功');
+    } catch (error) {
+      console.error('Auth error:', error);
+      this.showToast(`❌ ${error.message}`);
+    }
   },
 
   async quickLogin(type) {
-    this.currentUser.username = type === 'admin' ? 'admin001' : 'user123';
-    this.currentUser.nickname = type === 'admin' ? '管理員' : '一般用戶';
-    this.currentUser.role = type === 'admin' ? 'admin' : 'client';
-    await this.loadData();
-    this.showToast('✅ Demo登入成功');
+    const demoEmail = type === 'admin' ? `admin${Date.now()}@demo.com` : `user${Date.now()}@demo.com`;
+    const demoPassword = 'demo123456';
+    
+    try {
+      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = window.fbUtils;
+      
+      try {
+        await signInWithEmailAndPassword(window.auth, demoEmail, demoPassword);
+      } catch (e) {
+        // 帳號不存在，先創建
+        await createUserWithEmailAndPassword(window.auth, demoEmail, demoPassword);
+        await signInWithEmailAndPassword(window.auth, demoEmail, demoPassword);
+      }
+      
+      this.currentUser.uid = window.auth.currentUser.uid;
+      this.currentUser.username = type === 'admin' ? 'admin001' : 'user123';
+      this.currentUser.nickname = type === 'admin' ? '管理員' : '一般用戶';
+      this.currentUser.role = type === 'admin' ? 'admin' : 'client';
+      
+      await this.loadData();
+      this.showToast('✅ Demo登入成功');
+    } catch (error) {
+      console.error('Demo login error:', error);
+      this.showToast(`❌ Demo登入失敗: ${error.message}`);
+    }
   },
 
   async loadData() {
     try {
-      // 加載花卉 - 使用本地預設資料（之後可改為Firebase）
-      this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ _id: i, ...f }));
-      
-      // 其他資料先使用空陣列
-      this.diaries = [];
-      this.communityPosts = [];
+      // 加載花卉 - 使用Firebase或本地預設
+      if(window.db) {
+        const flowersSnap = await window.fbUtils.getDocs(window.fbUtils.collection(window.db, 'flowers'));
+        if(flowersSnap.empty) {
+          // 初始化預設花卉
+          for(const flower of DEFAULT_FLOWERS) {
+            await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'flowers'), flower);
+          }
+          this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `default-${i}`, ...f }));
+        } else {
+          this.flowers = flowersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        
+        // 加載當前用戶的日記
+        const diariesQuery = window.fbUtils.query(
+          window.fbUtils.collection(window.db, 'diaries'),
+          window.fbUtils.where('uid', '==', this.currentUser.uid)
+        );
+        const diariesSnap = await window.fbUtils.getDocs(diariesQuery);
+        this.diaries = diariesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.totalDiaries = this.diaries.length;
+      } else {
+        // 本地Fallback
+        this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `local-${i}`, ...f }));
+        this.diaries = [];
+      }
       
       console.log('✅ 數據加載完成');
     } catch (error) {
       console.error('❌ 加載失敗:', error);
-      this.showToast('❌ 加載失敗，請重試');
+      this.showToast('❌ 加載失敗，使用本地數據');
+      this.flowers = DEFAULT_FLOWERS.map((f, i) => ({ id: `fallback-${i}`, ...f }));
     }
+  },
+
+  // ✅ 日記方法
+  handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.newDiary.photoPreview = e.target.result;
+      this.newDiary.photo = e.target.result; // 暫時用Base64，生產環境改用Firebase Storage
+    };
+    reader.readAsDataURL(file);
+  },
+
+  async saveDiary() {
+    if(!this.newDiary.content.trim()) {
+      this.showToast('日記內容不能為空 🍂');
+      return;
+    }
+
+    try {
+      const diaryData = {
+        uid: this.currentUser.uid,
+        username: this.currentUser.username,
+        content: this.newDiary.content,
+        mood: this.newDiary.mood,
+        photo: this.newDiary.photo,
+        date: new Date().toISOString(),
+        timestamp: window.fbUtils.serverTimestamp()
+      };
+
+      if(window.db) {
+        await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'diaries'), diaryData);
+      }
+
+      // 加到本地
+      this.diaries = [...this.diaries, { id: `local-${Date.now()}`, ...diaryData }];
+      this.userPoints += 10; // 獎勵積分
+      this.totalDiaries += 1;
+
+      this.newDiary = { content: '', mood: '', photo: '', photoPreview: '', date: '' };
+      this.showDiaryForm = false;
+      this.showToast('✅ 日記已保存 (+10 points)');
+    } catch (error) {
+      console.error('Save diary error:', error);
+      this.showToast('❌ 保存失敗');
+    }
+  },
+
+  async deleteDiary(id) {
+    if(!confirm('確認刪除這篇日記嗎？')) return;
+
+    try {
+      if(window.db && !id.startsWith('local-')) {
+        await window.fbUtils.deleteDoc(window.fbUtils.doc(window.db, 'diaries', id));
+      }
+      
+      this.diaries = this.diaries.filter(d => d.id !== id);
+      this.totalDiaries -= 1;
+      this.showToast('✅ 已刪除');
+    } catch (error) {
+      console.error('Delete error:', error);
+      this.showToast('❌ 刪除失敗');
+    }
+  },
+
+  formatDate(dateStr) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('zh-Hant-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+  },
+
+  // ✅ 花卉方法
+  showFlowerModal(flower) {
+    this.selectedFlower = flower;
+    this.showModal = true;
   },
 
   async addFlower() {
@@ -356,27 +632,58 @@ PetiteVue.createApp({
       this.showToast('請填入所有欄位 🌸');
       return;
     }
-    
-    // 添加到本地陣列（之後可改為Firebase）
-    this.flowers = [...this.flowers, { _id: Date.now(), ...this.newFlower }];
-    this.newFlower = { name: '', img: '', word: '' };
-    this.showToast('✅ 花卉已新增');
-  },
 
-  async deleteFlower(id) {
-    if(confirm('確認刪除？')) {
-      this.flowers = this.flowers.filter(f => f._id !== id);
-      this.showToast('✅ 已刪除');
+    try {
+      const flowerData = {
+        name: this.newFlower.name,
+        img: this.newFlower.img,
+        word: this.newFlower.word
+      };
+
+      if(window.db) {
+        const docRef = await window.fbUtils.addDoc(window.fbUtils.collection(window.db, 'flowers'), flowerData);
+        this.flowers = [...this.flowers, { id: docRef.id, ...flowerData }];
+      } else {
+        this.flowers = [...this.flowers, { id: `local-${Date.now()}`, ...flowerData }];
+      }
+
+      this.newFlower = { name: '', img: '', word: '' };
+      this.showToast('✅ 花卉已新增');
+    } catch (error) {
+      console.error('Add flower error:', error);
+      this.showToast('❌ 新增失敗');
     }
   },
 
-  showFlowerModal(flower) {
-    this.showToast(`${flower.name}: ${flower.word}`);
+  async deleteFlower(id) {
+    if(!confirm('確認刪除這種花卉嗎？')) return;
+
+    try {
+      if(window.db && !id.startsWith('local-') && !id.startsWith('fallback-')) {
+        await window.fbUtils.deleteDoc(window.fbUtils.doc(window.db, 'flowers', id));
+      }
+      
+      this.flowers = this.flowers.filter(f => f.id !== id);
+      this.showToast('✅ 已刪除');
+    } catch (error) {
+      console.error('Delete flower error:', error);
+      this.showToast('❌ 刪除失敗');
+    }
   },
 
-  logout() {
-    this.currentUser = { username: '', nickname: '', role: '' };
-    this.showToast('✅ 已登出');
+  // ✅ 登出
+  async logout() {
+    try {
+      if(window.auth) {
+        await window.fbUtils.signOut(window.auth);
+      }
+      this.currentUser = { uid: '', username: '', nickname: '', role: 'client' };
+      this.diaries = [];
+      this.userPoints = 0;
+      this.showToast('✅ 已登出');
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   },
 
   showToast(msg) {
@@ -386,7 +693,7 @@ PetiteVue.createApp({
   }
 }).mount('#app');
 
-console.log('✅ 應用已初始化');
+console.log('✅ 應用已初始化 - Flower Language v2.0');
 </script>
 </body>
 </html>
