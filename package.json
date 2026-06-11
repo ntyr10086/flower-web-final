@@ -1,0 +1,18 @@
+{
+  "name": "flower-language",
+  "version": "1.0.0",
+  "description": "花語心情手帳 - 療癒心情日記應用",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 3000",
+    "dev": "python -m http.server 8000"
+  },
+  "keywords": [
+    "flower",
+    "diary",
+    "mood",
+    "therapeutic"
+  ],
+  "author": "Flower Team",
+  "license": "MIT"
+}

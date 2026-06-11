@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Flower Language 花語心情手帳 - Firebase版本</title>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+  import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+  import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js";
+
+  // Firebase配置 - 從環境變數讀取
+  const firebaseConfig = {
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "flower-language.firebaseapp.com",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "flower-language",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "flower-language.appspot.com",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123456789",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123456789:web:abc123"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  window.firebaseDB = getFirestore(app);
+  window.firebaseAuth = getAuth(app);
+  console.log('✅ Firebase已初始化');
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   一、 全域療癒色調變數 ＆ 基礎排版
+   ============================================================ */
+:root{
+  --bg-paper:  #FDFBF7;
+  --bg-cream:  #F5EBE6;
+  --primary-orange: #E6A15C;
+  --primary-brown:  #966F46;
+  --ink:        #5A4632;
+  --ink-soft:   #8C7457;
+  --line:       #E7D9C9;
+  --accent-rose:#D98E73;
+  --leaf:       #8FA06A;
+  --shadow:     rgba(150,111,70,.18);
+  --shadow-deep:rgba(90,70,50,.28);
+  --radius:     12px;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Noto Serif TC",serif;
+  color:var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(230,161,92,.10), transparent 42%),
+    radial-gradient(circle at 88% 82%, rgba(150,111,70,.10), transparent 42%),
+    var(--bg-paper);
+  background-attachment:fixed;
+  line-height:1.7;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+}
+
+.hand{font-family:"Long Cang","Gaegu",cursive}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,textarea,select{font-family:inherit}
+img{max-width:100%;display:block}
+
+/* 簡化的核心樣式 */
+.auth-card{
+  width:min(460px,100%);
+  background:var(--bg-paper);
+  border-radius:18px;
+  padding:42px 38px 36px;
+  box-shadow:0 24px 60px var(--shadow-deep);
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  border:1px solid #EFE3D5;
+  z-index:10;
+}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--ink-soft);margin-bottom:5px}
+.field input{
+  width:100%;padding:11px 14px;border:1.5px solid var(--line);border-radius:10px;
+  background:#fff;color:var(--ink);font-size:15px;
+}
+
+.btn-primary{
+  width:100%;padding:13px;border-radius:12px;font-size:16px;font-weight:700;color:#fff;
+  background:linear-gradient(135deg,var(--primary-orange),#D98E73);
+  box-shadow:0 8px 20px var(--shadow);transition:.2s;
+  cursor:pointer;
+}
+
+.btn-primary:hover{opacity:.9}
+
+.brand{text-align:center;margin-bottom:24px}
+.brand .logo{font-size:46px;margin-bottom:8px}
+.brand h1{font-size:30px;color:var(--primary-brown);margin-bottom:4px}
+
+.view{padding:20px;margin-bottom:100px;animation:fadeUp .4s ease}
+
+@keyframes fadeUp{0%{opacity:0;transform:translateY(14px)}100%{opacity:1;transform:translateY(0)}}
+
+.toast{
+  position:fixed;left:50%;bottom:110px;transform:translateX(-50%) translateY(20px);
+  background:var(--primary-brown);color:#fff;padding:13px 24px;border-radius:99px;
+  font-size:14px;font-weight:600;opacity:0;transition:.3s;z-index:90;
+}
+
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div id="app" v-scope>
+  <!-- 登入畫面 -->
+  <div id="auth-screen" v-if="!currentUser.uid" style="position:relative;min-height:100vh">
+    <div class="auth-card">
+      <div class="brand">
+        <div class="logo">🌼</div>
+        <h1 class="hand">Flower Language</h1>
+        <p style="color:var(--ink-soft);font-size:13px">花 語 心 情 手 帳</p>
+      </div>
+
+      <div class="field">
+        <label>帳號</label>
+        <input v-model="authUsername" type="text" placeholder="輸入帳號" />
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input v-model="authPassword" type="password" placeholder="輸入密碼" />
+      </div>
+
+      <button class="btn-primary" @click="handleAuthSubmit">{{ authMode === 'login' ? '進入' : '註冊' }}</button>
+      
+      <div style="text-align:center;margin-top:20px">
+        <button style="color:var(--ink-soft);text-decoration:underline;cursor:pointer;border:none;background:none;font-size:13px" @click="authMode = authMode === 'login' ? 'register' : 'login'">
+          {{ authMode === 'login' ? '沒有帳號？註冊' : '已有帳號？登入' }}
+        </button>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;border-top:1px dashed var(--line);padding-top:16px">
+        <p style="font-size:12px;color:var(--ink-soft);margin-bottom:10px">— 快速測試 —</p>
+        <button class="btn-primary" style="margin-bottom:8px;opacity:.8" @click="quickLogin('demo@test.com')">🌿 Demo 帳號</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主應用 -->
+  <div v-if="currentUser.uid" class="view">
+    <h2 class="hand" style="text-align:center;margin-bottom:20px">🌼 花語心情手帳</h2>
+    <p style="text-align:center;color:var(--ink-soft);margin-bottom:30px">歡迎，{{ currentUser.email }}</p>
+
+    <div style="max-width:600px;margin:0 auto;text-align:center">
+      <div style="background:#fff;padding:30px;border-radius:12px;box-shadow:0 4px 12px var(--shadow);margin-bottom:20px">
+        <div style="font-size:48px;margin-bottom:10px">🚀</div>
+        <h3 style="color:var(--primary-brown);margin-bottom:10px">部署成功</h3>
+        <p style="color:var(--ink-soft);margin-bottom:20px">Firebase已連接，應用正在運行</p>
+        <div style="font-size:13px;color:#666;background:#f5f5f5;padding:15px;border-radius:8px;margin-bottom:20px;text-align:left">
+          <p><strong>當前用戶：</strong>{{ currentUser.email }}</p>
+          <p><strong>UID：</strong>{{ currentUser.uid }}</p>
+          <p><strong>資料庫：</strong>Firebase Firestore</p>
+        </div>
+      </div>
+
+      <button class="btn-primary" @click="logout">登出</button>
+    </div>
+  </div>
+
+  <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
+</div>
+
+<!-- Petite-Vue -->
+<script src="https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js"><\/script>
+
+<script>
+PetiteVue.createApp({
+  authMode: 'login',
+  authUsername: '',
+  authPassword: '',
+  currentUser: {
+    uid: null,
+    email: ''
+  },
+  toastVisible: false,
+  toastMessage: '',
+
+  async handleAuthSubmit() {
+    if(!this.authUsername || !this.authPassword){
+      this.showToast('請輸入帳號與密碼');
+      return;
+    }
+
+    try {
+      const emailToUse = this.authUsername.includes('@') ? this.authUsername : `${this.authUsername}@flowerapp.com`;
+      
+      if(this.authMode === 'register'){
+        const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+        const userCred = await createUserWithEmailAndPassword(window.firebaseAuth, emailToUse, this.authPassword);
+        this.currentUser.uid = userCred.user.uid;
+        this.currentUser.email = userCred.user.email;
+        this.showToast('✅ 帳號建立成功');
+      } else {
+        const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+        const userCred = await signInWithEmailAndPassword(window.firebaseAuth, emailToUse, this.authPassword);
+        this.currentUser.uid = userCred.user.uid;
+        this.currentUser.email = userCred.user.email;
+        this.showToast('✅ 登入成功');
+      }
+      
+      this.authUsername = '';
+      this.authPassword = '';
+    } catch (err) {
+      console.error(err);
+      this.showToast('❌ ' + (err.message || '操作失敗'));
+    }
+  },
+
+  async quickLogin(email) {
+    this.authUsername = email;
+    this.authPassword = 'demo12345';
+    
+    try {
+      const { signInWithEmailAndPassword, createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+      
+      try {
+        const userCred = await signInWithEmailAndPassword(window.firebaseAuth, email, 'demo12345');
+        this.currentUser.uid = userCred.user.uid;
+        this.currentUser.email = userCred.user.email;
+      } catch (loginErr) {
+        // 帳號不存在，建立新帳號
+        const userCred = await createUserWithEmailAndPassword(window.firebaseAuth, email, 'demo12345');
+        this.currentUser.uid = userCred.user.uid;
+        this.currentUser.email = userCred.user.email;
+      }
+      
+      this.showToast('✅ 已進入');
+    } catch (err) {
+      this.showToast('❌ Demo帳號失敗');
+    }
+  },
+
+  async logout() {
+    try {
+      const { signOut } = await import('https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js');
+      await signOut(window.firebaseAuth);
+      this.currentUser.uid = null;
+      this.currentUser.email = '';
+      this.showToast('✅ 已登出');
+    } catch (err) {
+      this.showToast('❌ 登出失敗');
+    }
+  },
+
+  showToast(msg) {
+    this.toastMessage = msg;
+    this.toastVisible = true;
+    setTimeout(() => { this.toastVisible = false; }, 3000);
+  }
+}).mount('#app');
+
+console.log('✅ 應用已初始化');
+</script>
+</body>
+</html>

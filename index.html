@@ -113,7 +113,7 @@ img{max-width:100%;display:block}
 /* ============================================================
    主應用框架
    ============================================================ */
-#app-screen{display:block;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
+#app-screen{display:none;position:relative;z-index:1;min-height:100vh;padding-bottom:96px}
 .top-bar{
   position:sticky;top:0;z-index:20;
   display:flex;align-items:center;justify-content:space-between;
@@ -494,7 +494,7 @@ input[type=range]::-moz-range-thumb{
       <p class="view-sub">拉動情緒滑桿、貼上照片，讓花語為今天的你說話。</p>
 
       <div class="diary-toolbar">
-        <button class="tool-btn" @click="triggerPhotoInput">📷 上傳照片</button>
+        <button class="tool-btn" @click="$el.querySelector('#photo-input').click()">📷 上傳照片</button>
         <button class="tool-btn" @click="openDrawer">🎨 客製化手帳</button>
         <input id="photo-input" type="file" accept="image/*" style="display:none" @change="handlePhotoUpload" />
       </div>
@@ -503,7 +503,7 @@ input[type=range]::-moz-range-thumb{
         <div class="page-pad">
           <textarea class="diary-text" v-model="draftText" placeholder="親愛的手帳，今天的我……"></textarea>
 
-          <div class="photo-preview" v-if="draftPhoto">
+          <div class="photo-preview" v-if="draftPhoto" style="display:block">
             <div class="photo-tape"><img :src="draftPhoto" alt="上傳的照片" /></div>
           </div>
 
@@ -756,8 +756,40 @@ input[type=range]::-moz-range-thumb{
   <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
 </div>
 
-<!-- Petite-Vue (cdnjs) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/petite-vue/0.4.1/petite-vue.iife.min.js"></script>
+<!-- Petite-Vue (多 CDN 備選) -->
+<script>
+  // 嘗試加載 Petite-Vue
+  window.PetiteVueLoaded = false;
+  
+  function loadPetiteVue() {
+    if (window.PetiteVue) {
+      window.PetiteVueLoaded = true;
+      return;
+    }
+    
+    // 主 CDN
+    const script1 = document.createElement('script');
+    script1.src = 'https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js';
+    script1.timeout = 15000;
+    script1.onload = () => { window.PetiteVueLoaded = true; console.log('✅ Petite-Vue 已加載'); };
+    script1.onerror = () => {
+      console.warn('主 CDN 失敗，嘗試備用 CDN');
+      // 備用 CDN
+      const script2 = document.createElement('script');
+      script2.src = 'https://cdn.jsdelivr.net/npm/petite-vue@0.4.1/dist/petite-vue.iife.js';
+      script2.timeout = 15000;
+      script2.onload = () => { window.PetiteVueLoaded = true; console.log('✅ Petite-Vue (備用 CDN) 已加載'); };
+      script2.onerror = () => {
+        console.error('所有 CDN 加載失敗，請檢查網絡連接');
+      };
+      document.head.appendChild(script2);
+    };
+    document.head.appendChild(script1);
+  }
+  
+  loadPetiteVue();
+</script>
+
 <!-- PouchDB -->
 <script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js"></script>
 
@@ -779,12 +811,60 @@ function avatarFor(nickname){
   return NICK_AVATAR[h % NICK_AVATAR.length];
 }
 
-// 初始化 PouchDB
-let db = new PouchDB('flower-language-guest');
-const globalDb = new PouchDB('flower-language-global');  // 全局数据库：花卉、商品
+function escapeHTML(str){
+  return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
 
-// 啟動 Petite-Vue
-PetiteVue.createApp({
+function clamp(n){ 
+  return Math.max(0, Math.min(100, n)); 
+}
+
+// 初始化 PouchDB - 分離「全局共享」和「用戶私人」數據庫
+const globalDb = new PouchDB('flower-language-global'); // 管理員上架的花卉、商品（所有用戶共享）
+let userDb = null; // 用戶私人數據（日記、社群貼文等）
+
+// 初始化數據
+async function initializeData() {
+  try {
+    // 檢查是否已經有初始數據
+    const doc = await db.get('_config');
+    console.log('Database already initialized');
+  } catch (e) {
+    if (e.status === 404) {
+      // 初始化默認花卉
+      const flowers = [
+        { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
+        { _id: 'f_lavender', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
+        { _id: 'f_lotus', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
+        { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
+      ];
+      
+      const shopItems = [
+        { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
+        { _id: 'bg_sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
+        { _id: 'bg_sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
+        { _id: 'st_flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
+        { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
+      ];
+
+      await db.bulkDocs([
+        { _id: '_config', initialized: true },
+        ...flowers,
+        ...shopItems
+      ]);
+      console.log('Database initialized with default data');
+    }
+  }
+}
+
+// Petite-Vue 應用
+const createPetiteVueApp = () => {
+  if (typeof PetiteVue === 'undefined') {
+    console.error('PetiteVue 未加載');
+    return;
+  }
+  
+  PetiteVue.createApp({
   // Auth
   authMode: 'login',
   authUsername: '',
@@ -798,7 +878,7 @@ PetiteVue.createApp({
     unlockedItems: ['bg_default']
   },
 
-  // Data
+  // Data from PouchDB
   flowers: [],
   shopItems: [],
   diaries: [],
@@ -822,14 +902,12 @@ PetiteVue.createApp({
   appliedBg: '#F5EBE6',
   appliedStickers: [],
 
+  // New item forms
   newFlower: { name: '', img: '🌷', word: '', v: 50, a: 50 },
   newItem: { name: '', type: 'bg', price: 0, val: '' },
-  selectedFlower: null,
 
-  // 生命週期：一掛載就立刻執行初始化
-  mounted() {
-    this.initAll();
-  },
+  // Modal
+  selectedFlower: null,
 
   // Computed
   get greetText() {
@@ -838,53 +916,16 @@ PetiteVue.createApp({
     if(hour >= 18) return '晚安';
     return '午安';
   },
-  get reversedDiaries() { return [...this.diaries].reverse(); },
-  get reversedCommunityPosts() { return [...this.communityPosts].reverse(); },
+
+  get reversedDiaries() {
+    return [...this.diaries].reverse();
+  },
+
+  get reversedCommunityPosts() {
+    return [...this.communityPosts].reverse();
+  },
 
   // Methods
-  async initAll() {
-    try {
-      // 檢查並建立預設資料
-      try {
-        await db.get('_config');
-      } catch(e) {
-        if (e.status === 404) {
-          const defaultFlowers = [
-            { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
-            { _id: 'f_lavender', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
-            { _id: 'f_lotus', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
-            { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
-          ];
-          const defaultShop = [
-            { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
-            { _id: 'bg_sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
-            { _id: 'bg_sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
-            { _id: 'st_flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
-            { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
-          ];
-          await db.bulkDocs([{ _id: '_config', initialized: true }, ...defaultFlowers, ...defaultShop]);
-        }
-      }
-      // 載入資料
-      await this.loadData();
-    } catch(err) {
-      console.error('初始化失敗:', err);
-    }
-  },
-
-  async loadData() {
-    const allDocs = await db.allDocs({ include_docs: true });
-    const globalDocs = await globalDb.allDocs({ include_docs: true });
-    
-    // 从全局数据库读取花卉和商品（所有用户共享）
-    this.flowers = [...globalDocs.rows.filter(r => r.doc.type === 'flower').map(r => r.doc)];
-    this.shopItems = [...globalDocs.rows.filter(r => ['bg', 'sticker'].includes(r.doc.type)).map(r => r.doc)];
-    
-    // 从个人数据库读取日记和社群贴文
-    this.diaries = [...allDocs.rows.filter(r => r.doc.type === 'diary').map(r => r.doc)];
-    this.communityPosts = [...allDocs.rows.filter(r => r.doc.type === 'community-post').map(r => r.doc)];
-  },
-
   async handleAuthSubmit() {
     if(!this.authUsername || !this.authPassword){
       this.showToast('請輸入帳號與密碼 🍂');
@@ -899,9 +940,6 @@ PetiteVue.createApp({
   },
 
   async loginAs(username, role) {
-    // 为该用户创建独立的数据库
-    db = new PouchDB(`flower-language-${username}`);
-    
     this.currentUser.username = username;
     this.currentUser.role = role;
     this.currentUser.nickname = generateNickname();
@@ -911,14 +949,11 @@ PetiteVue.createApp({
     this.appliedStickers = [];
     this.authUsername = '';
     this.authPassword = '';
-    await this.loadData();
+    
     this.showToast(`歡迎進入花語世界，${this.currentUser.nickname}`);
   },
 
   logout() {
-    // 登出时重置为临时数据库
-    db = new PouchDB('flower-language-guest');
-    
     this.currentUser = { username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
     this.draftPhoto = null;
     this.draftText = '';
@@ -926,12 +961,26 @@ PetiteVue.createApp({
     this.showToast('已登出');
   },
 
-  triggerPhotoInput() {
-    const photoInput = document.querySelector('#photo-input');
-    if(photoInput) {
-      photoInput.click();
-    } else {
-      this.showToast('上傳功能初始化失敗 ❌');
+  async loadData() {
+    try {
+      const allDocs = await db.allDocs({ include_docs: true });
+      this.flowers = allDocs.rows
+        .filter(row => row.doc.type === 'flower')
+        .map(row => row.doc);
+      
+      this.shopItems = allDocs.rows
+        .filter(row => ['bg', 'sticker'].includes(row.doc.type))
+        .map(row => row.doc);
+      
+      this.diaries = allDocs.rows
+        .filter(row => row.doc.type === 'diary')
+        .map(row => row.doc);
+      
+      this.communityPosts = allDocs.rows
+        .filter(row => row.doc.type === 'community-post')
+        .map(row => row.doc);
+    } catch (e) {
+      console.error('Failed to load data from PouchDB:', e);
     }
   },
 
@@ -960,11 +1009,8 @@ PetiteVue.createApp({
       this.showToast('先寫下今天的心情文字吧 🍂');
       return;
     }
+
     const flower = this.recommendFlower(this.sliderV, this.sliderA);
-    if(!flower) {
-      this.showToast('圖鑑裡還沒有花朵，請管理員先去後台生一朵花花 🌸');
-      return;
-    }
     const entry = {
       _id: 'd_' + Date.now(),
       type: 'diary',
@@ -975,10 +1021,13 @@ PetiteVue.createApp({
       stickers: [...this.appliedStickers],
       isAnonymous: this.publishToommunity
     };
+
     await db.put(entry);
+
     if(!this.currentUser.unlockedItems.includes('flower-' + flower._id)){
       this.currentUser.unlockedItems.push('flower-' + flower._id);
     }
+
     if(this.publishToommunity){
       const communityPost = {
         _id: 'p_' + Date.now(),
@@ -995,6 +1044,7 @@ PetiteVue.createApp({
       await db.put(communityPost);
       this.communityPosts.push(communityPost);
     }
+
     this.diaries.push(entry);
     this.draftPhoto = null;
     this.draftText = '';
@@ -1005,8 +1055,13 @@ PetiteVue.createApp({
   },
 
   showFlowerModal(flowerId, isRecommend) {
-    this.selectedFlower = this.flowers.find(f => f._id === flowerId) || (this.diaries.find(d => d.flower.id === flowerId)?.flower);
-    if(this.selectedFlower && !this.selectedFlower._id) this.selectedFlower._id = flowerId;
+    this.selectedFlower = this.flowers.find(f => f._id === flowerId);
+    if(!this.selectedFlower){
+      const diaryFlower = this.diaries.find(d => d.flower.id === flowerId);
+      if(diaryFlower){
+        this.selectedFlower = { ...diaryFlower.flower, _id: diaryFlower.flower.id };
+      }
+    }
     this.isRecommendModal = isRecommend || false;
     this.modalOpen = true;
   },
@@ -1014,169 +1069,202 @@ PetiteVue.createApp({
   async buyItem(itemId) {
     const item = this.shopItems.find(x => x._id === itemId);
     if(!item) return;
-    if(this.currentUser.unlockedItems.includes(itemId)) return;
+    if(this.currentUser.unlockedItems.includes(itemId)){
+      this.showToast('你已經擁有這個項目囉 🌿');
+      return;
+    }
     if(this.currentUser.points < item.price){
-      this.selectedFlower = { img: '🍃', name: '點數還在路上', word: `需要 ${item.price} 點，目前只有 ${this.currentUser.points} 點。`, v: 0, a: 0 };
+      this.selectedFlower = {
+        img: '🍃',
+        name: '點數還在路上',
+        word: `這個小物需要 ${item.price} 點，但你目前有 ${this.currentUser.points} 點。`,
+        v: 0, a: 0
+      };
       this.isRecommendModal = false;
       this.modalOpen = true;
       return;
     }
     this.currentUser.points -= item.price;
     this.currentUser.unlockedItems.push(itemId);
-    this.showToast(`已購買「${item.name}」🎨`);
+    this.showToast(`已購買「${item.name}」，到客製化面板套用看看吧 🎨`);
   },
 
   applyBackground(itemId) {
     const item = this.shopItems.find(x => x._id === itemId);
-    if(item) this.appliedBg = item.val;
+    if(!item || !this.currentUser.unlockedItems.includes(itemId)) return;
+    this.appliedBg = item.val;
+    this.showToast(`已套用背景「${item.name}」🎨`);
   },
 
   applySticker(itemId) {
     const item = this.shopItems.find(x => x._id === itemId);
-    if(item) this.appliedStickers.push(item.val);
+    if(!item || !this.currentUser.unlockedItems.includes(itemId)) return;
+    this.appliedStickers.push(item.val);
+    this.showToast(`貼紙 ${item.val} 已貼上手帳`);
   },
 
-  clearStickers() { this.appliedStickers = []; },
-  openDrawer() { this.drawerOpen = true; },
-  closeDrawer() { this.drawerOpen = false; },
+  clearStickers() {
+    this.appliedStickers = [];
+  },
+
+  openDrawer() {
+    this.drawerOpen = true;
+  },
+
+  closeDrawer() {
+    this.drawerOpen = false;
+  },
 
   async addFlower() {
-    if(!this.newFlower.name || !this.newFlower.name.trim()) {
-      this.showToast('請填寫花卉名稱 📝');
+    if(!this.newFlower.name || !this.newFlower.word){
+      this.showToast('請填寫花卉名稱與花語 🍂');
       return;
     }
-    if(!this.newFlower.word || !this.newFlower.word.trim()) {
-      this.showToast('請填寫花語 🌸');
-      return;
-    }
-    
     const flower = {
-      _id: 'f_' + Date.now(), 
-      type: 'flower', 
-      name: this.newFlower.name, 
+      _id: 'f_' + Date.now(),
+      type: 'flower',
+      name: this.newFlower.name,
       word: this.newFlower.word,
-      v: Math.max(0, Math.min(100, this.newFlower.v)), 
-      a: Math.max(0, Math.min(100, this.newFlower.a)),
-      img: this.newFlower.img || '🌷'
+      v: clamp(this.newFlower.v),
+      a: clamp(this.newFlower.a),
+      img: this.newFlower.img || '🌷',
+      _new: true
     };
-    
-    try {
-      console.log('📤 正在上架花卉:', flower);
-      const result = await globalDb.put(flower);  // ← 保存到全局数据库
-      console.log('✅ 花卉上架成功:', result);
-      
-      // 改用這種方式追加，畫面才會即時重新渲染喔！
-      this.flowers = [...this.flowers, flower]; 
-      this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
-      this.showToast('成功上架新花卉！🌸');
-    } catch(err) {
-      console.error('❌ 花卉上架失敗:', err.name, err.message);
-      this.showToast(`上架失敗: ${err.message} ❌`);
-    }
+    await db.put(flower);
+    this.flowers.push(flower);
+    this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
+    this.showToast(`花卉「${flower.name}」已上架，所有用戶圖鑑即時更新 🌸`);
   },
 
   async deleteFlower(flowerId) {
-    if(!confirm('確定刪除？')) return;
-    try {
-      const latestDoc = await globalDb.get(flowerId);  // ← 从全局数据库获取
-      await globalDb.remove(latestDoc);  // ← 从全局数据库删除
+    if(!confirm('確定要刪除這朵花嗎？')) return;
+    const flower = this.flowers.find(f => f._id === flowerId);
+    if(flower){
+      await db.remove(flower);
       this.flowers = this.flowers.filter(f => f._id !== flowerId);
-      this.showToast('花卉已刪除 🗑️');
-    } catch(err) {
-      this.showToast('刪除失敗，請重試 ❌');
-      console.error('deleteFlower error:', err);
+      this.showToast(`花卉「${flower.name}」已刪除 🗑️`);
     }
   },
 
   async addItem() {
-    if(!this.newItem.name || !this.newItem.name.trim()) {
-      this.showToast('請填寫商品名稱 📝');
+    if(!this.newItem.name || !this.newItem.val){
+      this.showToast('請填寫商品名稱與內容值 🍂');
       return;
     }
-    if(!this.newItem.val || !this.newItem.val.trim()) {
-      this.showToast('請填寫內容值（顏色/漸層/貼紙） 🎨');
-      return;
-    }
-    
     const item = {
       _id: (this.newItem.type === 'bg' ? 'bg_' : 'st_') + Date.now(),
-      type: this.newItem.type, 
-      name: this.newItem.name, 
-      price: Math.max(0, this.newItem.price), 
-      val: this.newItem.val
+      type: this.newItem.type,
+      name: this.newItem.name,
+      price: Math.max(0, this.newItem.price),
+      val: this.newItem.val,
+      _new: true
     };
-    
-    try {
-      console.log('📤 正在上架商品:', item);
-      const result = await globalDb.put(item);  // ← 保存到全局数据库
-      console.log('✅ 商品上架成功:', result);
-      
-      // 同樣改用重新解構賦值的方式
-      this.shopItems = [...this.shopItems, item];
-      this.newItem = { name: '', type: 'bg', price: 0, val: '' };
-      this.showToast('成功上架新商品！🛍️');
-    } catch(err) {
-      console.error('❌ 商品上架失敗:', err.name, err.message);
-      this.showToast(`上架失敗: ${err.message} ❌`);
-    }
+    await db.put(item);
+    this.shopItems.push(item);
+    this.newItem = { name: '', type: 'bg', price: 0, val: '' };
+    this.showToast(`商品「${item.name}」已上架，所有用戶商店即時更新 🛍️`);
   },
 
   async deleteItem(itemId) {
-    if(!confirm('確定刪除？')) return;
-    try {
-      const latestDoc = await globalDb.get(itemId);  // ← 从全局数据库获取
-      await globalDb.remove(latestDoc);  // ← 从全局数据库删除
+    if(!confirm('確定要刪除這個商品嗎？')) return;
+    const item = this.shopItems.find(i => i._id === itemId);
+    if(item){
+      await db.remove(item);
       this.shopItems = this.shopItems.filter(i => i._id !== itemId);
-      this.showToast('商品已刪除 🗑️');
-    } catch(err) {
-      this.showToast('刪除失敗，請重試 ❌');
-      console.error('deleteItem error:', err);
+      this.showToast(`商品「${item.name}」已刪除 🗑️`);
     }
   },
 
   async giveHug(postId) {
-    try {
-      const latestPost = await db.get(postId);
-      latestPost.hugs += 1;
-      latestPost.hugged = true;
-      await db.put(latestPost);
-      
-      // 更新記憶體中的陣列
-      const idx = this.communityPosts.findIndex(p => p._id === postId);
-      if(idx !== -1) {
-        this.communityPosts[idx] = latestPost;
-        this.communityPosts = [...this.communityPosts];
-      }
-    } catch(err) {
-      this.showToast('操作失敗，請重試 ❌');
-      console.error('giveHug error:', err);
-    }
+    const post = this.communityPosts.find(p => p._id === postId);
+    if(!post) return;
+    post.hugs += 1;
+    post.hugged = true;
+    await db.put(post);
+    this.communityPosts = [...this.communityPosts];
   },
 
   async giveFlower(postId) {
-    try {
-      const latestPost = await db.get(postId);
-      latestPost.flowersGiven += 1;
-      await db.put(latestPost);
-      
-      // 更新記憶體中的陣列
-      const idx = this.communityPosts.findIndex(p => p._id === postId);
-      if(idx !== -1) {
-        this.communityPosts[idx] = latestPost;
-        this.communityPosts = [...this.communityPosts];
-      }
-    } catch(err) {
-      this.showToast('操作失敗，請重試 ❌');
-      console.error('giveFlower error:', err);
-    }
+    const post = this.communityPosts.find(p => p._id === postId);
+    if(!post) return;
+    post.flowersGiven += 1;
+    await db.put(post);
+    this.communityPosts = [...this.communityPosts];
   },
 
   showToast(msg) {
-    this.toastMessage = msg; this.toastVisible = true;
+    this.toastMessage = msg;
+    this.toastVisible = true;
     setTimeout(() => this.toastVisible = false, 2600);
-  }
-}).mount('#app');
-</script>
+  },
 
+  avatarFor(nickname) {
+    return avatarFor(nickname);
+  }
+  }).mount('#app');
+};
+
+
+// 等待 DOM 完全加載
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('⏳ 等待 PetiteVue 加載...');
+  
+  let petiteVueReady = false;
+  let attempts = 0;
+  const maxAttempts = 1200; // 60 秒 (50ms × 1200)
+  
+  // 等待最多 60 秒
+  while (!petiteVueReady && attempts < maxAttempts) {
+    if (typeof PetiteVue !== 'undefined') {
+      petiteVueReady = true;
+      console.log('✅ PetiteVue 已加載');
+      break;
+    }
+    await new Promise(r => setTimeout(r, 50));
+    attempts++;
+    
+    // 每 10 秒顯示一次進度
+    if (attempts % 200 === 0) {
+      const secs = Math.floor(attempts * 50 / 1000);
+      console.log(`⏳ 仍在等待... (${secs}秒)`);
+    }
+  }
+  
+  if (!petiteVueReady) {
+    if (typeof PetiteVue !== 'undefined') {
+      console.log('💫 檢測到 PetiteVue 已加載，繼續初始化...');
+    } else {
+      console.error('❌ PetiteVue 加載超時（60秒）');
+      console.log('💡 可能原因：');
+      console.log('   1. 網絡連接不穩定');
+      console.log('   2. CDN 被防火牆阻擋（中國大陸/某些地區）');
+      console.log('   3. 瀏覽器擴展程式干擾');
+      console.log('📱 建議：使用 VPN、刷新頁面或檢查網絡');
+      return;
+    }
+  }
+  
+  try {
+    console.log('🔧 創建應用...');
+    createPetiteVueApp();
+    
+    console.log('📦 初始化資料庫...');
+    await initializeData();
+    
+    console.log('📂 加載應用數據...');
+    setTimeout(async () => {
+      const app = document.querySelector('[v-scope]')?.__vue__;
+      if (app) {
+        await app.loadData();
+        console.log('✅ 應用初始化完成');
+      } else {
+        console.error('❌ 無法獲取應用實例');
+      }
+    }, 100);
+  } catch (error) {
+    console.error('❌ 應用初始化錯誤:', error);
+  }
+});
+</script>
 </body>
 </html>
