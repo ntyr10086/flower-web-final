@@ -1020,12 +1020,42 @@ PetiteVue.createApp({
 
   handlePhotoUpload(e) {
     const file = e.target.files[0];
-    if(!file) {
-      console.log('❌ 沒有選擇檔案');
-      return;
-    }
-    console.log('📷 開始上傳照片:', file.name, file.size, file.type);
-    this.uploadPhotoToStorage(file);
+    if(!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width = img.width;
+        let height = img.height;
+        const maxWidth = 400;
+        const maxHeight = 400;
+        
+        if(width > height) {
+          if(width > maxWidth) {
+            height = height * (maxWidth / width);
+            width = maxWidth;
+          }
+        } else {
+          if(height > maxHeight) {
+            width = width * (maxHeight / height);
+            height = maxHeight;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        this.draftPhotoURL = canvas.toDataURL('image/jpeg', 0.7);
+        this.showToast('照片已貼進手帳內頁 📷');
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
   },
 
   recommendFlower(userV, userA) {
@@ -1105,46 +1135,6 @@ PetiteVue.createApp({
     } catch(err) {
       this.showToast('記錄失敗 ❌');
       console.error('recordMood error:', err);
-    }
-  },
-
-  async uploadPhotoToStorage(file) {
-    try {
-      console.log('🔧 uploadPhotoToStorage 開始');
-      console.log('Firebase Storage:', window.firebaseStorage ? '✅ 已初始化' : '❌ 未初始化');
-      console.log('Storage Tools:', window.storageTools ? '✅ 已初始化' : '❌ 未初始化');
-      console.log('Username:', this.currentUser.username);
-      
-      const storage = window.firebaseStorage;
-      const tools = window.storageTools;
-      
-      if(!storage) throw new Error('Storage 未初始化');
-      if(!tools) throw new Error('Storage Tools 未初始化');
-      if(!this.currentUser.username) throw new Error('Username 未設置');
-      
-      const timestamp = Date.now();
-      const storagePath = `diaries/${this.currentUser.username}/${timestamp}`;
-      console.log('📁 上傳路徑:', storagePath);
-      
-      const photoRef = tools.ref(storage, storagePath);
-      console.log('📤 開始上傳檔案...');
-      
-      const uploadResult = await tools.uploadBytes(photoRef, file);
-      console.log('✅ 上傳成功:', uploadResult);
-      
-      const url = await tools.getDownloadURL(photoRef);
-      console.log('🔗 Download URL:', url);
-      
-      this.draftPhotoURL = url;
-      console.log('💾 draftPhotoURL 已設置:', this.draftPhotoURL);
-      
-      this.showToast('照片已上傳至手帳內頁 📷');
-      return url;
-    } catch(err) {
-      console.error('❌ 上傳照片失敗:', err);
-      console.error('錯誤詳情:', err.message, err.code);
-      this.showToast('照片上傳失敗 ❌');
-      return null;
     }
   },
 
