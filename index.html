@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Flower Language 花語心情手帳</title>
+<title>Flower Language 花語心情手帳 - PouchDB版本</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
@@ -204,7 +204,7 @@ input[type=range]::-moz-range-thumb{
 .switch{position:relative;width:48px;height:26px;flex:0 0 auto}
 .switch input{display:none}
 .switch .track{
-  position:absolute;inset:0;background:var(--line);border-radius:999px;transition:.25s;
+  position:absolute;inset:0;background:var(--line);border-radius:99px;transition:.25s;
 }
 .switch .track::after{
   content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
@@ -254,7 +254,7 @@ input[type=range]::-moz-range-thumb{
 .flower-card .va span{background:var(--bg-cream);padding:2px 8px;border-radius:99px}
 .new-badge{
   position:absolute;top:-8px;right:-8px;background:var(--accent-rose);color:#fff;
-  font-size:11px;padding:3px 9px;border-radius:999px;box-shadow:0 4px 10px var(--shadow);animation:pop .4s ease;
+  font-size:11px;padding:3px 9px;border-radius:99px;box-shadow:0 4px 10px var(--shadow);animation:pop .4s ease;
 }
 
 /* ============================================================
@@ -434,6 +434,9 @@ input[type=range]::-moz-range-thumb{
 <body>
 
 <div id="app" v-scope>
+  <!-- ============================================================
+       登入 / 註冊畫面
+       ============================================================ -->
   <div id="auth-screen" v-if="!currentUser.role">
     <div class="auth-card">
       <div class="brand">
@@ -448,11 +451,11 @@ input[type=range]::-moz-range-thumb{
       </div>
 
       <div class="field">
-        <label>帳號（Email 格式）</label>
-        <input v-model="authUsername" type="text" placeholder="例如：guest@test.com" autocomplete="off" />
+        <label>帳號</label>
+        <input v-model="authUsername" type="text" placeholder="輸入您的帳號" autocomplete="off" />
       </div>
       <div class="field">
-        <label>密碼（至少 6 位數）</label>
+        <label>密碼</label>
         <input v-model="authPassword" type="password" placeholder="輸入您的密碼" autocomplete="off" />
       </div>
 
@@ -473,6 +476,9 @@ input[type=range]::-moz-range-thumb{
     </div>
   </div>
 
+  <!-- ============================================================
+       主應用
+       ============================================================ -->
   <div id="app-screen" v-if="currentUser.role">
     <div class="top-bar">
       <div class="greet">{{ greetText }}，{{ currentUser.nickname }} 🍂</div>
@@ -482,6 +488,7 @@ input[type=range]::-moz-range-thumb{
       </div>
     </div>
 
+    <!-- 日記頁 -->
     <section class="view" v-if="activeTab === 'diary'">
       <h2 class="view-title hand">手帳日記 📔</h2>
       <p class="view-sub">拉動情緒滑桿、貼上照片，讓花語為今天的你說話。</p>
@@ -529,7 +536,7 @@ input[type=range]::-moz-range-thumb{
       </div>
 
       <div class="diary-list" v-if="diaries.length > 0">
-        <article class="diary-entry" v-for="diary of reversedDiaries" :key="diary.id">
+        <article class="diary-entry" v-for="diary of reversedDiaries" :key="diary._id">
           <span class="posted-flag" v-if="diary.isAnonymous">🌿 已分享至社群</span>
           <div class="date">{{ diary.date }}</div>
           <div class="body">{{ diary.text }}</div>
@@ -551,38 +558,43 @@ input[type=range]::-moz-range-thumb{
       </div>
     </section>
 
+    <!-- 花語圖鑑頁 -->
     <section class="view" v-if="activeTab === 'gallery'">
       <h2 class="view-title hand">花語圖鑑 🌸</h2>
       <p class="view-sub">每一朵花都有它想說的話，點擊查看完整花語。</p>
       <div class="card-grid">
-        <div class="flower-card" v-for="flower of flowers" :key="flower.id" @click="showFlowerModal(flower.id)">
+        <div class="flower-card" v-for="flower of flowers" :key="flower._id" @click="showFlowerModal(flower._id)">
+          <span v-if="flower._new" class="new-badge">NEW</span>
           <div class="big">{{ flower.img }}</div>
           <h3>{{ flower.name }}</h3>
           <div class="word">{{ flower.word }}</div>
           <div class="va"><span>V {{ flower.v }}</span><span>A {{ flower.a }}</span></div>
-          <div v-if="currentUser.unlockedItems.includes('flower-' + flower.id)" style="margin-top:8px;font-size:12px;color:var(--leaf)">🌿 已收藏</div>
+          <div v-if="currentUser.unlockedItems.includes('flower-' + flower._id)" style="margin-top:8px;font-size:12px;color:var(--leaf)">🌿 已收藏</div>
         </div>
       </div>
     </section>
 
+    <!-- 虛擬商店頁 -->
     <section class="view" v-if="activeTab === 'shop'">
       <h2 class="view-title hand">虛擬商店 🛍️</h2>
       <p class="view-sub">用心情點數兌換背景與貼紙，打造專屬你的手帳風格。</p>
       <div class="card-grid">
-        <div class="shop-card" v-for="item of shopItems" :key="item.id">
+        <div class="shop-card" v-for="item of shopItems" :key="item._id">
+          <span v-if="item._new" class="new-badge">NEW</span>
           <div class="shop-preview" v-if="item.type === 'bg'" :style="{background: item.val}"></div>
           <div class="shop-preview" v-else style="background:var(--bg-cream)">{{ item.val }}</div>
           <h3>{{ item.name }}</h3>
           <div class="type-tag">{{ item.type === 'bg' ? '手帳背景' : '裝飾貼紙' }}</div>
           <div class="price">{{ item.price === 0 ? '免費' : '🪙 ' + item.price + ' 點' }}</div>
-          <button class="buy-btn" :class="{owned: currentUser.unlockedItems.includes(item.id)}" 
-            @click="buyItem(item.id)" :disabled="currentUser.unlockedItems.includes(item.id)">
-            {{ currentUser.unlockedItems.includes(item.id) ? '已擁有' : '購買' }}
+          <button class="buy-btn" :class="{owned: currentUser.unlockedItems.includes(item._id)}" 
+            @click="buyItem(item._id)" :disabled="currentUser.unlockedItems.includes(item._id)">
+            {{ currentUser.unlockedItems.includes(item._id) ? '已擁有' : '購買' }}
           </button>
         </div>
       </div>
     </section>
 
+    <!-- 社群廣場頁 -->
     <section class="view" v-if="activeTab === 'community'">
       <h2 class="view-title hand">社群廣場 💬</h2>
       <p class="view-sub">這裡的每個人都用花朵化名分享心情，安心又溫暖。</p>
@@ -590,7 +602,7 @@ input[type=range]::-moz-range-thumb{
         <span class="em">🌾</span>還沒有人分享心情。<br>回到手帳日記，打開「分享到社群」開關，成為第一朵綻放的花。
       </div>
       <div class="post-list" v-else>
-        <article class="post" v-for="post of reversedCommunityPosts" :key="post.id">
+        <article class="post" v-for="post of reversedCommunityPosts" :key="post._id">
           <div class="head">
             <div class="avatar">{{ avatarFor(post.nickname) }}</div>
             <div class="meta">
@@ -606,10 +618,10 @@ input[type=range]::-moz-range-thumb{
             {{ post.flower.img }} 今日代表花：{{ post.flower.name }}
           </div>
           <div class="post-actions">
-            <button class="hug-btn" :class="{hugged: post.huggedBy?.includes(currentUser.uid)}" @click="giveHug(post.id)">
+            <button class="hug-btn" :class="{hugged: post.hugged}" @click="giveHug(post._id)">
               給予擁抱 🫂 (<span class="count">{{ post.hugs }}</span>)
             </button>
-            <button class="flower-give-btn" @click="giveFlower(post.id)">
+            <button class="flower-give-btn" @click="giveFlower(post._id)">
               送一朵花 🌷 (<span class="count">{{ post.flowersGiven }}</span>)
             </button>
           </div>
@@ -617,6 +629,7 @@ input[type=range]::-moz-range-thumb{
       </div>
     </section>
 
+    <!-- 管理員後台頁 -->
     <section class="view" v-if="activeTab === 'admin' && currentUser.role === 'admin'">
       <h2 class="view-title hand">管理後台 🛠</h2>
       <p class="view-sub">在這裡上架的內容，會即時同步到所有使用者的圖鑑與商店。</p>
@@ -626,6 +639,7 @@ input[type=range]::-moz-range-thumb{
         <button :class="{active: adminPanel === 'items'}" @click="adminPanel = 'items'">🛍️ 管理商品</button>
       </div>
 
+      <!-- 花卉管理 -->
       <div v-if="adminPanel === 'flowers'">
         <div class="notebook">
           <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架花卉</h3>
@@ -639,17 +653,18 @@ input[type=range]::-moz-range-thumb{
           <button class="btn-primary" @click="addFlower">確認上架花卉</button>
         </div>
         <div class="admin-list">
-          <div class="admin-row" v-for="flower of flowers" :key="flower.id">
+          <div class="admin-row" v-for="flower of flowers" :key="flower._id">
             <span class="em">{{ flower.img }}</span>
             <div class="info">
               <b>{{ flower.name }}</b>
-              <small>{{ flower.word }} ｜ V:{{ flower.v }} A:{{ flower.a }}</small>
+              <small>{{ flower.word }}　｜　V:{{ flower.v }} A:{{ flower.a }}</small>
             </div>
-            <button class="delete-btn" @click="deleteFlower(flower.id)">刪除</button>
+            <button class="delete-btn" @click="deleteFlower(flower._id)">刪除</button>
           </div>
         </div>
       </div>
 
+      <!-- 商品管理 -->
       <div v-if="adminPanel === 'items'">
         <div class="notebook">
           <h3 style="color:var(--primary-brown);margin-bottom:16px">➕ 新增上架商品</h3>
@@ -668,18 +683,19 @@ input[type=range]::-moz-range-thumb{
           <button class="btn-primary" @click="addItem">確認上架商品</button>
         </div>
         <div class="admin-list">
-          <div class="admin-row" v-for="item of shopItems" :key="item.id">
+          <div class="admin-row" v-for="item of shopItems" :key="item._id">
             <span class="em">{{ item.type === 'sticker' ? item.val : '🎨' }}</span>
             <div class="info">
               <b>{{ item.name }}</b>
-              <small>{{ item.type === 'bg' ? '手帳背景' : '裝飾貼紙' }} ｜ {{ item.price === 0 ? '免費' : item.price + ' 點' }}</small>
+              <small>{{ item.type === 'bg' ? '手帳背景' : '裝飾貼紙' }}　｜　{{ item.price === 0 ? '免費' : item.price + ' 點' }}</small>
             </div>
-            <button class="delete-btn" @click="deleteItem(item.id)">刪除</button>
+            <button class="delete-btn" @click="deleteItem(item._id)">刪除</button>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- 底部導覽 -->
     <nav class="nav-bar">
       <button :class="{active: activeTab === 'diary'}" @click="activeTab = 'diary'"><span class="ic">📔</span>手帳日記</button>
       <button :class="{active: activeTab === 'gallery'}" @click="activeTab = 'gallery'"><span class="ic">🌸</span>花語圖鑑</button>
@@ -689,6 +705,7 @@ input[type=range]::-moz-range-thumb{
     </nav>
   </div>
 
+  <!-- 客製化抽屜 -->
   <div class="drawer-mask" :class="{open: drawerOpen}" @click="closeDrawer"></div>
   <div class="drawer" :class="{open: drawerOpen}">
     <button class="drawer-close" @click="closeDrawer">✕</button>
@@ -698,10 +715,10 @@ input[type=range]::-moz-range-thumb{
     <div class="cust-section">
       <h4>🖼️ 手帳背景</h4>
       <div class="cust-grid">
-        <div v-for="item of shopItems.filter(i => i.type === 'bg')" :key="item.id" 
-          :class="{locked: !currentUser.unlockedItems.includes(item.id), 'active-cust': appliedBg === item.val}"
-          class="cust-item" @click="currentUser.unlockedItems.includes(item.id) && applyBackground(item.id)">
-          <span class="lock" v-if="!currentUser.unlockedItems.includes(item.id)">🔒</span>
+        <div v-for="item of shopItems.filter(i => i.type === 'bg')" :key="item._id" 
+          :class="{locked: !currentUser.unlockedItems.includes(item._id), 'active-cust': appliedBg === item.val}"
+          class="cust-item" @click="currentUser.unlockedItems.includes(item._id) && applyBackground(item._id)">
+          <span class="lock" v-if="!currentUser.unlockedItems.includes(item._id)">🔒</span>
           <div class="swatch" :style="{background: item.val}"></div>{{ item.name }}
         </div>
       </div>
@@ -710,10 +727,10 @@ input[type=range]::-moz-range-thumb{
     <div class="cust-section">
       <h4>✨ 內頁貼紙</h4>
       <div class="cust-grid">
-        <div v-for="item of shopItems.filter(i => i.type === 'sticker')" :key="item.id"
-          :class="{locked: !currentUser.unlockedItems.includes(item.id)}"
-          class="cust-item" @click="currentUser.unlockedItems.includes(item.id) && applySticker(item.id)">
-          <span class="lock" v-if="!currentUser.unlockedItems.includes(item.id)">🔒</span>
+        <div v-for="item of shopItems.filter(i => i.type === 'sticker')" :key="item._id"
+          :class="{locked: !currentUser.unlockedItems.includes(item._id)}"
+          class="cust-item" @click="currentUser.unlockedItems.includes(item._id) && applySticker(item._id)">
+          <span class="lock" v-if="!currentUser.unlockedItems.includes(item._id)">🔒</span>
           <div class="swatch">{{ item.val }}</div>{{ item.name }}
         </div>
       </div>
@@ -721,6 +738,7 @@ input[type=range]::-moz-range-thumb{
     </div>
   </div>
 
+  <!-- Modal 彈窗 -->
   <div class="modal-mask" :class="{open: modalOpen}" @click="if($event.target === $event.currentTarget) modalOpen = false">
     <div class="modal" v-if="selectedFlower">
       <div class="big">{{ selectedFlower.img }}</div>
@@ -734,454 +752,463 @@ input[type=range]::-moz-range-thumb{
     </div>
   </div>
 
+  <!-- Toast -->
   <div class="toast" :class="{show: toastVisible}">{{ toastMessage }}</div>
 </div>
 
+<!-- Petite-Vue (cdnjs) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/petite-vue/0.4.1/petite-vue.iife.min.js"></script>
+<!-- PouchDB -->
+<script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js"></script>
 
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { 
-    getFirestore, collection, doc, setDoc, getDoc, getDocs, addDoc, updateDoc, deleteDoc, query, where, onSnapshot 
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-  import { 
-    getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, signInWithCustomToken
-  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
 
-  // 填入你的 Firebase 專案設定資訊（放前端是公開且合法的唷！）
-// 箱子是空的，準備等 Vercel 把金鑰裝進來
-    const firebaseConfig = {
-    apiKey: process.env.VITE_FIREBASE_API_KEY,
-    authDomain: process.env.VITE_FIREBASE_AUTH_DOMAIN,
-    databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
-    projectId: process.env.VITE_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-    messagingSenderId: process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-    appId: process.env.VITE_FIREBASE_APP_ID,
-    measurementId: process.env.VITE_FIREBASE_MEASUREMENT_ID
-    };
-  // 初始化 Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-  const auth = getAuth(app);
+<!-- Firebase 配置初始化 -->
+<script>
+// Firebase 配置（請填入你的 Firebase 專案設定）
+const firebaseConfig = {
+  apiKey: process.env.VITE_FIREBASE_API_KEY,
+  authDomain:process.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
+  projectId:process.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId:process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId:process.env.VITE_FIREBASE_APP_ID,
+  measurementId:process.env.VITE_FIREBASE_MEASUREMENT_ID
+};
 
-  const NICK_ADJ = ['暗戀的','寧靜的','耀眼的','溫柔的','勇敢的','想念的','微笑的','沉睡的','綻放的','自由的','溫慢的','害羞的'];
-  const NICK_FLOWER = ['向日葵','薰衣草','蓮花','鬱金香','梔子花','風信子','雛菊','鈴蘭','茉莉','山茶','銀蓮','勿忘我'];
-  const NICK_AVATAR = ['🌻','🪻','🪷','🌷','🌼','🌺','🌸','💐','🏵️','🌹'];
-
-  function generateNickname(){
-    const adj = NICK_ADJ[Math.floor(Math.random()*NICK_ADJ.length)];
-    const fl  = NICK_FLOWER[Math.floor(Math.random()*NICK_FLOWER.length)];
-    const num = String(Math.floor(Math.random()*900)+100);
-    return `${adj}${fl} #${num}`;
+// 初始化 Firebase（若配置完整）
+let firebaseApp = null, firebaseAuth = null, firebaseDb = null, firebaseStorage = null;
+try {
+  if (firebaseConfig.projectId) {
+    firebaseApp = firebase.initializeApp(firebaseConfig);
+    firebaseAuth = firebase.auth();
+    firebaseDb = firebase.firestore();
+    firebaseStorage = firebase.storage();
+    console.log('✅ Firebase 已初始化');
+  } else {
+    console.warn('⚠️ Firebase 配置未完整，將使用本地 PouchDB');
   }
+} catch (err) {
+  console.warn('⚠️ Firebase 初始化失敗:', err.message);
+}
+</script>
 
-  window.avatarFor = function(nickname) {
-    if(!nickname) return '🌱';
-    let h=0;
-    for(const c of nickname) h=(h*31+c.charCodeAt(0))>>>0;
-    return NICK_AVATAR[h % NICK_AVATAR.length];
-  }
+<script>
+const NICK_ADJ = ['暗戀的','寧靜的','耀眼的','溫柔的','勇敢的','想念的','微笑的','沉睡的','綻放的','自由的','溫暖的','害羞的'];
+const NICK_FLOWER = ['向日葵','薰衣草','蓮花','鬱金香','梔子花','風信子','雛菊','鈴蘭','茉莉','山茶','銀蓮','勿忘我'];
+const NICK_AVATAR = ['🌻','🪻','🪷','🌷','🌼','🌺','🌸','💐','🏵️','🌹'];
 
-  PetiteVue.createApp({
-    // Auth
-    authMode: 'login',
-    authUsername: '',
-    authPassword: '',
-    authRole: 'client',
-    currentUser: {
-      uid: '',
-      username: '',
-      role: '',
-      nickname: '',
-      points: 500,
-      unlockedItems: ['bg_default']
-    },
+function generateNickname(){
+  const adj = NICK_ADJ[Math.floor(Math.random()*NICK_ADJ.length)];
+  const fl  = NICK_FLOWER[Math.floor(Math.random()*NICK_FLOWER.length)];
+  const num = String(Math.floor(Math.random()*900)+100);
+  return `${adj}${fl} #${num}`;
+}
 
-    // Data
-    flowers: [],
-    shopItems: [],
-    diaries: [],
-    communityPosts: [],
+function avatarFor(nickname){
+  let h=0;
+  for(const c of nickname) h=(h*31+c.charCodeAt(0))>>>0;
+  return NICK_AVATAR[h % NICK_AVATAR.length];
+}
 
-    // UI State
-    activeTab: 'diary',
-    adminPanel: 'flowers',
-    drawerOpen: false,
-    modalOpen: false,
-    toastVisible: false,
-    toastMessage: '',
-    isRecommendModal: false,
+// 初始化 PouchDB
+let db = new PouchDB('flower-language-guest');
+const globalDb = new PouchDB('flower-language-global');  // 全局数据库：花卉、商品
 
-    // Form Data
-    draftText: '',
-    draftPhoto: null,
-    sliderV: 50,
-    sliderA: 50,
-    publishToommunity: false,
-    appliedBg: '#F5EBE6',
-    appliedStickers: [],
+// 啟動 Petite-Vue
+PetiteVue.createApp({
+  // Auth
+  authMode: 'login',
+  authUsername: '',
+  authPassword: '',
+  authRole: 'client',
+  currentUser: {
+    username: '',
+    role: '',
+    nickname: '',
+    points: 500,
+    unlockedItems: ['bg_default']
+  },
 
-    newFlower: { name: '', img: '🌷', word: '', v: 50, a: 50 },
-    newItem: { name: '', type: 'bg', price: 0, val: '' },
-    selectedFlower: null,
+  // Data
+  flowers: [],
+  shopItems: [],
+  diaries: [],
+  communityPosts: [],
 
-    mounted() {
-      this.initDefaultCollections();
-      this.listenGlobalData();
-    },
+  // UI State
+  activeTab: 'diary',
+  adminPanel: 'flowers',
+  drawerOpen: false,
+  modalOpen: false,
+  toastVisible: false,
+  toastMessage: '',
+  isRecommendModal: false,
 
-    // Computed
-    get greetText() {
-      const hour = new Date().getHours();
-      if(hour < 11) return '早安';
-      if(hour >= 18) return '晚安';
-      return '午安';
-    },
-    get reversedDiaries() { return [...this.diaries].reverse(); },
-    get reversedCommunityPosts() { return [...this.communityPosts].reverse(); },
+  // Form Data
+  draftText: '',
+  draftPhoto: null,
+  sliderV: 50,
+  sliderA: 50,
+  publishToommunity: false,
+  appliedBg: '#F5EBE6',
+  appliedStickers: [],
 
-    // 監聽全域的商店和花卉資料（即時即看！）
-    listenGlobalData() {
-      onSnapshot(collection(db, "flowers"), (snapshot) => {
-        this.flowers = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      });
-      onSnapshot(collection(db, "shopItems"), (snapshot) => {
-        this.shopItems = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      });
-      onSnapshot(collection(db, "communityPosts"), (snapshot) => {
-        this.communityPosts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      });
-    },
+  newFlower: { name: '', img: '🌷', word: '', v: 50, a: 50 },
+  newItem: { name: '', type: 'bg', price: 0, val: '' },
+  selectedFlower: null,
 
-    // 監聽目前登入用戶的個人日記資料
-    listenUserData(uid) {
-      const q = query(collection(db, "diaries"), where("uid", "==", uid));
-      onSnapshot(q, (snapshot) => {
-        this.diaries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      });
-    },
+  // 生命週期：一掛載就立刻執行初始化
+  mounted() {
+    this.initAll();
+  },
 
-    // 初始化預設花卉和商品（如果資料庫是空的才會塞進去）
-    async initDefaultCollections() {
-      const flowerCheck = await getDocs(collection(db, "flowers"));
-      if(flowerCheck.empty) {
-        const defaultFlowers = [
-          { name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
-          { name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
-          { name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
-          { name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
-        ];
-        for(let f of defaultFlowers) { await addDoc(collection(db, "flowers"), f); }
-      }
+  // Computed
+  get greetText() {
+    const hour = new Date().getHours();
+    if(hour < 11) return '早安';
+    if(hour >= 18) return '晚安';
+    return '午安';
+  },
+  get reversedDiaries() { return [...this.diaries].reverse(); },
+  get reversedCommunityPosts() { return [...this.communityPosts].reverse(); },
 
-      const shopCheck = await getDocs(collection(db, "shopItems"));
-      if(shopCheck.empty) {
-        const defaultShop = [
-          { name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
-          { name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
-          { name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
-          { name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
-          { name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
-        ];
-        for(let s of defaultShop) { await addDoc(collection(db, "shopItems"), s); }
-      }
-    },
-
-    // 處理 Firebase 登入與註冊
-    async handleAuthSubmit() {
-      if(!this.authUsername || !this.authPassword){
-        this.showToast('請輸入帳號與密碼 🍂');
-        return;
-      }
-      if(this.authPassword.length < 6) {
-        this.showToast('密碼至少需要 6 位數密碼唷！');
-        return;
-      }
-
+  // Methods
+  async initAll() {
+    try {
+      // 檢查並建立預設資料
       try {
-        if(this.authMode === 'register') {
-          // 註冊新帳號
-          const credential = await createUserWithEmailAndPassword(auth, this.authUsername, this.authPassword);
-          const uid = credential.user.uid;
-          const userProfile = {
-            username: this.authUsername,
-            role: this.authRole,
-            nickname: generateNickname(),
-            points: 500,
-            unlockedItems: ['bg_default']
-          };
-          // 寫入 Firestore 用戶檔案
-          await setDoc(doc(db, "users", uid), userProfile);
-          this.setupUserSession(uid, userProfile);
-        } else {
-          // 登入
-          const credential = await signInWithEmailAndPassword(auth, this.authUsername, this.authPassword);
-          const uid = credential.user.uid;
-          const userDoc = await getDoc(doc(db, "users", uid));
-          if(userDoc.exists()) {
-            this.setupUserSession(uid, userDoc.data());
-          }
-        }
-      } catch(err) {
-        this.showToast(`認證失敗: ${err.message}`);
-      }
-    },
-
-    // 快速測試登入
-    async quickLogin(role) {
-      const demoEmail = role === 'admin' ? 'admin001@test.com' : 'user123@test.com';
-      this.authUsername = demoEmail;
-      this.authPassword = "password123";
-      this.authRole = role;
-      
-      try {
-        await this.handleAuthSubmit();
+        await db.get('_config');
       } catch(e) {
-        // 如果 Demo 帳號不存在就順便自動幫忙建立
-        this.authMode = 'register';
-        await this.handleAuthSubmit();
-      }
-    },
-
-    setupUserSession(uid, profile) {
-      this.currentUser = { uid, ...profile };
-      this.appliedBg = '#F5EBE6';
-      this.appliedStickers = [];
-      this.authUsername = '';
-      this.authPassword = '';
-      this.listenUserData(uid);
-      this.showToast(`歡迎進入花語世界，${this.currentUser.nickname} ✨`);
-    },
-
-    async logout() {
-      await signOut(auth);
-      this.currentUser = { uid: '', username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
-      this.draftPhoto = null;
-      this.draftText = '';
-      this.diaries = [];
-      this.activeTab = 'diary';
-      this.showToast('已登出囉 👋');
-    },
-
-    triggerPhotoInput() {
-      const photoInput = document.querySelector('#photo-input');
-      if(photoInput) photoInput.click();
-    },
-
-    handlePhotoUpload(e) {
-      const file = e.target.files[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        this.draftPhoto = ev.target.result;
-        this.showToast('照片已貼進手帳內頁 📷');
-      };
-      reader.readAsDataURL(file);
-    },
-
-    recommendFlower(userV, userA) {
-      let best = null, bestDist = Infinity;
-      for(const f of this.flowers){
-        const dist = Math.sqrt(Math.pow(userV - f.v, 2) + Math.pow(userA - f.a, 2));
-        if(dist < bestDist){ bestDist = dist; best = f; }
-      }
-      return best;
-    },
-
-    async recordMood() {
-      if(!this.draftText.trim()){
-        this.showToast('先寫下今天的心情文字吧 🍂');
-        return;
-      }
-      const flower = this.recommendFlower(this.sliderV, this.sliderA);
-      if(!flower) {
-        this.showToast('圖鑑裡還沒有花朵，請管理員先去後台生一朵花花 🌸');
-        return;
-      }
-
-      const entry = {
-        uid: this.currentUser.uid,
-        text: this.draftText,
-        date: new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}),
-        flower: { id: flower.id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
-        photo: this.draftPhoto,
-        stickers: [...this.appliedStickers],
-        isAnonymous: this.publishToommunity
-      };
-
-      // 儲存日記到雲端
-      await addDoc(collection(db, "diaries"), entry);
-
-      // 解鎖對應的花卉
-      if(!this.currentUser.unlockedItems.includes('flower-' + flower.id)){
-        this.currentUser.unlockedItems.push('flower-' + flower.id);
-        await updateDoc(doc(db, "users", this.currentUser.uid), {
-          unlockedItems: this.currentUser.unlockedItems
-        });
-      }
-
-      // 如果勾選分享到社群廣場
-      if(this.publishToommunity){
-        const communityPost = {
-          nickname: this.currentUser.nickname,
-          text: this.draftText,
-          photo: this.draftPhoto,
-          flower: { id: flower.id, name: flower.name, img: flower.img },
-          date: entry.date,
-          hugs: 0,
-          flowersGiven: 0,
-          huggedBy: []
-        };
-        await addDoc(collection(db, "communityPosts"), communityPost);
-      }
-
-      this.draftPhoto = null;
-      this.draftText = '';
-      this.sliderV = 50;
-      this.sliderA = 50;
-      this.publishToommunity = false;
-      this.showFlowerModal(flower.id, true);
-    },
-
-    showFlowerModal(flowerId, isRecommend) {
-      this.selectedFlower = this.flowers.find(f => f.id === flowerId) || (this.diaries.find(d => d.flower.id === flowerId)?.flower);
-      this.isRecommendModal = isRecommend || false;
-      this.modalOpen = true;
-    },
-
-    async buyItem(itemId) {
-      const item = this.shopItems.find(x => x.id === itemId);
-      if(!item) return;
-      if(this.currentUser.unlockedItems.includes(itemId)) return;
-      if(this.currentUser.points < item.price){
-        this.selectedFlower = { img: '🍃', name: '點數還在路上', word: `需要 ${item.price} 點，目前只有 ${this.currentUser.points} 點。`, v: 0, a: 0 };
-        this.isRecommendModal = false;
-        this.modalOpen = true;
-        return;
-      }
-      
-      this.currentUser.points -= item.price;
-      this.currentUser.unlockedItems.push(itemId);
-      
-      // 同步扣點與解鎖到 Firebase
-      await updateDoc(doc(db, "users", this.currentUser.uid), {
-        points: this.currentUser.points,
-        unlockedItems: this.currentUser.unlockedItems
-      });
-
-      this.showToast(`已成功購買「${item.name}」🎨`);
-    },
-
-    applyBackground(itemId) {
-      const item = this.shopItems.find(x => x.id === itemId);
-      if(item) this.appliedBg = item.val;
-    },
-
-    applySticker(itemId) {
-      const item = this.shopItems.find(x => x.id === itemId);
-      if(item) this.appliedStickers.push(item.val);
-    },
-
-    clearStickers() { this.appliedStickers = []; },
-    openDrawer() { this.drawerOpen = true; },
-    closeDrawer() { this.drawerOpen = false; },
-
-    // 管理員功能：上架花卉到 Firestore
-    async addFlower() {
-      if(!this.newFlower.name || !this.newFlower.name.trim()) {
-        this.showToast('請填寫花卉名稱 📝');
-        return;
-      }
-      if(!this.newFlower.word || !this.newFlower.word.trim()) {
-        this.showToast('請填寫花語 🌸');
-        return;
-      }
-      
-      const flower = {
-        name: this.newFlower.name, 
-        word: this.newFlower.word,
-        v: Math.max(0, Math.min(100, this.newFlower.v)), 
-        a: Math.max(0, Math.min(100, this.newFlower.a)),
-        img: this.newFlower.img || '🌷'
-      };
-      
-      await addDoc(collection(db, "flowers"), flower);
-      this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
-      this.showToast('成功雲端上架新花卉！🌸');
-    },
-
-    async deleteFlower(flowerId) {
-      if(!confirm('確定刪除？')) return;
-      await deleteDoc(doc(db, "flowers", flowerId));
-      this.showToast('花卉已自雲端下架 🗑️');
-    },
-
-    // 管理員功能：上架商品到 Firestore
-    async addItem() {
-      if(!this.newItem.name || !this.newItem.name.trim()) {
-        this.showToast('請填寫商品名稱 📝');
-        return;
-      }
-      if(!this.newItem.val || !this.newItem.val.trim()) {
-        this.showToast('請填寫內容值（顏色/漸層/貼紙） 🎨');
-        return;
-      }
-      
-      const item = {
-        type: this.newItem.type, 
-        name: this.newItem.name, 
-        price: Math.max(0, this.newItem.price), 
-        val: this.newItem.val
-      };
-      
-      await addDoc(collection(db, "shopItems"), item);
-      this.newItem = { name: '', type: 'bg', price: 0, val: '' };
-      this.showToast('成功雲端上架新商品！🛍️');
-    },
-
-    async deleteItem(itemId) {
-      if(!confirm('確定刪除？')) return;
-      await deleteDoc(doc(db, "shopItems", itemId));
-      this.showToast('商品已從商店下架 🗑️');
-    },
-
-    // 社群擁抱功能
-    async giveHug(postId) {
-      const postRef = doc(db, "communityPosts", postId);
-      const postSnapshot = await getDoc(postRef);
-      if(postSnapshot.exists()) {
-        const data = postSnapshot.data();
-        let huggedBy = data.huggedBy || [];
-        let currentHugs = data.hugs || 0;
-        
-        if(huggedBy.includes(this.currentUser.uid)) {
-          this.showToast('你已經給過溫暖的擁抱囉 🫂');
-          return;
+        if (e.status === 404) {
+          const defaultFlowers = [
+            { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
+            { _id: 'f_lavender', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
+            { _id: 'f_lotus', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
+            { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
+          ];
+          const defaultShop = [
+            { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
+            { _id: 'bg_sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
+            { _id: 'bg_sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
+            { _id: 'st_flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
+            { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
+          ];
+          await db.bulkDocs([{ _id: '_config', initialized: true }, ...defaultFlowers, ...defaultShop]);
         }
-        huggedBy.push(this.currentUser.uid);
-        await updateDoc(postRef, {
-          hugs: currentHugs + 1,
-          huggedBy: huggedBy
-        });
       }
-    },
-
-    // 社群送花功能
-    async giveFlower(postId) {
-      const postRef = doc(db, "communityPosts", postId);
-      const postSnapshot = await getDoc(postRef);
-      if(postSnapshot.exists()) {
-        const currentFlowers = postSnapshot.data().flowersGiven || 0;
-        await updateDoc(postRef, { flowersGiven: currentFlowers + 1 });
-      }
-    },
-
-    showToast(msg) {
-      this.toastMessage = msg; this.toastVisible = true;
-      setTimeout(() => this.toastVisible = false, 2600);
+      // 載入資料
+      await this.loadData();
+    } catch(err) {
+      console.error('初始化失敗:', err);
     }
-  }).mount('#app');
+  },
+
+  async loadData() {
+    const allDocs = await db.allDocs({ include_docs: true });
+    const globalDocs = await globalDb.allDocs({ include_docs: true });
+    
+    // 从全局数据库读取花卉和商品（所有用户共享）
+    this.flowers = [...globalDocs.rows.filter(r => r.doc.type === 'flower').map(r => r.doc)];
+    this.shopItems = [...globalDocs.rows.filter(r => ['bg', 'sticker'].includes(r.doc.type)).map(r => r.doc)];
+    
+    // 从个人数据库读取日记和社群贴文
+    this.diaries = [...allDocs.rows.filter(r => r.doc.type === 'diary').map(r => r.doc)];
+    this.communityPosts = [...allDocs.rows.filter(r => r.doc.type === 'community-post').map(r => r.doc)];
+  },
+
+  async handleAuthSubmit() {
+    if(!this.authUsername || !this.authPassword){
+      this.showToast('請輸入帳號與密碼 🍂');
+      return;
+    }
+    this.loginAs(this.authUsername, this.authRole);
+  },
+
+  async quickLogin(role) {
+    const username = role === 'admin' ? 'admin001' : 'user123';
+    this.loginAs(username, role);
+  },
+
+  async loginAs(username, role) {
+    // 为该用户创建独立的数据库
+    db = new PouchDB(`flower-language-${username}`);
+    
+    this.currentUser.username = username;
+    this.currentUser.role = role;
+    this.currentUser.nickname = generateNickname();
+    this.currentUser.points = 500;
+    this.currentUser.unlockedItems = ['bg_default'];
+    this.appliedBg = '#F5EBE6';
+    this.appliedStickers = [];
+    this.authUsername = '';
+    this.authPassword = '';
+    await this.loadData();
+    this.showToast(`歡迎進入花語世界，${this.currentUser.nickname}`);
+  },
+
+  logout() {
+    // 登出时重置为临时数据库
+    db = new PouchDB('flower-language-guest');
+    
+    this.currentUser = { username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
+    this.draftPhoto = null;
+    this.draftText = '';
+    this.activeTab = 'diary';
+    this.showToast('已登出');
+  },
+
+  triggerPhotoInput() {
+    const photoInput = document.querySelector('#photo-input');
+    if(photoInput) {
+      photoInput.click();
+    } else {
+      this.showToast('上傳功能初始化失敗 ❌');
+    }
+  },
+
+  handlePhotoUpload(e) {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      this.draftPhoto = ev.target.result;
+      this.showToast('照片已貼進手帳內頁 📷');
+    };
+    reader.readAsDataURL(file);
+  },
+
+  recommendFlower(userV, userA) {
+    let best = null, bestDist = Infinity;
+    for(const f of this.flowers){
+      const dist = Math.sqrt(Math.pow(userV - f.v, 2) + Math.pow(userA - f.a, 2));
+      if(dist < bestDist){ bestDist = dist; best = f; }
+    }
+    return best;
+  },
+
+  async recordMood() {
+    if(!this.draftText.trim()){
+      this.showToast('先寫下今天的心情文字吧 🍂');
+      return;
+    }
+    const flower = this.recommendFlower(this.sliderV, this.sliderA);
+    if(!flower) {
+      this.showToast('圖鑑裡還沒有花朵，請管理員先去後台生一朵花花 🌸');
+      return;
+    }
+    const entry = {
+      _id: 'd_' + Date.now(),
+      type: 'diary',
+      text: this.draftText,
+      date: new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}),
+      flower: { id: flower._id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
+      photo: this.draftPhoto,
+      stickers: [...this.appliedStickers],
+      isAnonymous: this.publishToommunity
+    };
+    await db.put(entry);
+    if(!this.currentUser.unlockedItems.includes('flower-' + flower._id)){
+      this.currentUser.unlockedItems.push('flower-' + flower._id);
+    }
+    if(this.publishToommunity){
+      const communityPost = {
+        _id: 'p_' + Date.now(),
+        type: 'community-post',
+        nickname: this.currentUser.nickname,
+        text: this.draftText,
+        photo: this.draftPhoto,
+        flower: { id: flower._id, name: flower.name, img: flower.img },
+        date: entry.date,
+        hugs: 0,
+        flowersGiven: 0,
+        hugged: false
+      };
+      await db.put(communityPost);
+      this.communityPosts.push(communityPost);
+    }
+    this.diaries.push(entry);
+    this.draftPhoto = null;
+    this.draftText = '';
+    this.sliderV = 50;
+    this.sliderA = 50;
+    this.publishToommunity = false;
+    this.showFlowerModal(flower._id, true);
+  },
+
+  showFlowerModal(flowerId, isRecommend) {
+    this.selectedFlower = this.flowers.find(f => f._id === flowerId) || (this.diaries.find(d => d.flower.id === flowerId)?.flower);
+    if(this.selectedFlower && !this.selectedFlower._id) this.selectedFlower._id = flowerId;
+    this.isRecommendModal = isRecommend || false;
+    this.modalOpen = true;
+  },
+
+  async buyItem(itemId) {
+    const item = this.shopItems.find(x => x._id === itemId);
+    if(!item) return;
+    if(this.currentUser.unlockedItems.includes(itemId)) return;
+    if(this.currentUser.points < item.price){
+      this.selectedFlower = { img: '🍃', name: '點數還在路上', word: `需要 ${item.price} 點，目前只有 ${this.currentUser.points} 點。`, v: 0, a: 0 };
+      this.isRecommendModal = false;
+      this.modalOpen = true;
+      return;
+    }
+    this.currentUser.points -= item.price;
+    this.currentUser.unlockedItems.push(itemId);
+    this.showToast(`已購買「${item.name}」🎨`);
+  },
+
+  applyBackground(itemId) {
+    const item = this.shopItems.find(x => x._id === itemId);
+    if(item) this.appliedBg = item.val;
+  },
+
+  applySticker(itemId) {
+    const item = this.shopItems.find(x => x._id === itemId);
+    if(item) this.appliedStickers.push(item.val);
+  },
+
+  clearStickers() { this.appliedStickers = []; },
+  openDrawer() { this.drawerOpen = true; },
+  closeDrawer() { this.drawerOpen = false; },
+
+  async addFlower() {
+    if(!this.newFlower.name || !this.newFlower.name.trim()) {
+      this.showToast('請填寫花卉名稱 📝');
+      return;
+    }
+    if(!this.newFlower.word || !this.newFlower.word.trim()) {
+      this.showToast('請填寫花語 🌸');
+      return;
+    }
+    
+    const flower = {
+      _id: 'f_' + Date.now(), 
+      type: 'flower', 
+      name: this.newFlower.name, 
+      word: this.newFlower.word,
+      v: Math.max(0, Math.min(100, this.newFlower.v)), 
+      a: Math.max(0, Math.min(100, this.newFlower.a)),
+      img: this.newFlower.img || '🌷'
+    };
+    
+    try {
+      console.log('📤 正在上架花卉:', flower);
+      const result = await globalDb.put(flower);
+      console.log('✅ 花卉上架成功:', result);
+      
+      this.flowers = [...this.flowers, flower]; 
+      this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
+      this.showToast('成功上架新花卉！🌸');
+    } catch(err) {
+      console.error('❌ 花卉上架失敗:', err.name, err.message);
+      this.showToast(`上架失敗: ${err.message} ❌`);
+    }
+  },
+
+  async deleteFlower(flowerId) {
+    if(!confirm('確定刪除？')) return;
+    try {
+      const latestDoc = await globalDb.get(flowerId);
+      await globalDb.remove(latestDoc);
+      this.flowers = this.flowers.filter(f => f._id !== flowerId);
+      this.showToast('花卉已刪除 🗑️');
+    } catch(err) {
+      this.showToast('刪除失敗，請重試 ❌');
+      console.error('deleteFlower error:', err);
+    }
+  },
+
+  async addItem() {
+    if(!this.newItem.name || !this.newItem.name.trim()) {
+      this.showToast('請填寫商品名稱 📝');
+      return;
+    }
+    if(!this.newItem.val || !this.newItem.val.trim()) {
+      this.showToast('請填寫內容值（顏色/漸層/貼紙） 🎨');
+      return;
+    }
+    
+    const item = {
+      _id: (this.newItem.type === 'bg' ? 'bg_' : 'st_') + Date.now(),
+      type: this.newItem.type, 
+      name: this.newItem.name, 
+      price: Math.max(0, this.newItem.price), 
+      val: this.newItem.val
+    };
+    
+    try {
+      console.log('📤 正在上架商品:', item);
+      const result = await globalDb.put(item);
+      console.log('✅ 商品上架成功:', result);
+      
+      this.shopItems = [...this.shopItems, item];
+      this.newItem = { name: '', type: 'bg', price: 0, val: '' };
+      this.showToast('成功上架新商品！🛍️');
+    } catch(err) {
+      console.error('❌ 商品上架失敗:', err.name, err.message);
+      this.showToast(`上架失敗: ${err.message} ❌`);
+    }
+  },
+
+  async deleteItem(itemId) {
+    if(!confirm('確定刪除？')) return;
+    try {
+      const latestDoc = await globalDb.get(itemId);
+      await globalDb.remove(latestDoc);
+      this.shopItems = this.shopItems.filter(i => i._id !== itemId);
+      this.showToast('商品已刪除 🗑️');
+    } catch(err) {
+      this.showToast('刪除失敗，請重試 ❌');
+      console.error('deleteItem error:', err);
+    }
+  },
+
+  async giveHug(postId) {
+    try {
+      const latestPost = await db.get(postId);
+      latestPost.hugs += 1;
+      latestPost.hugged = true;
+      await db.put(latestPost);
+      
+      const idx = this.communityPosts.findIndex(p => p._id === postId);
+      if(idx !== -1) {
+        this.communityPosts[idx] = latestPost;
+        this.communityPosts = [...this.communityPosts];
+      }
+    } catch(err) {
+      this.showToast('操作失敗，請重試 ❌');
+      console.error('giveHug error:', err);
+    }
+  },
+
+  async giveFlower(postId) {
+    try {
+      const latestPost = await db.get(postId);
+      latestPost.flowersGiven += 1;
+      await db.put(latestPost);
+      
+      const idx = this.communityPosts.findIndex(p => p._id === postId);
+      if(idx !== -1) {
+        this.communityPosts[idx] = latestPost;
+        this.communityPosts = [...this.communityPosts];
+      }
+    } catch(err) {
+      this.showToast('操作失敗，請重試 ❌');
+      console.error('giveFlower error:', err);
+    }
+  },
+
+  showToast(msg) {
+    this.toastMessage = msg; this.toastVisible = true;
+    setTimeout(() => this.toastVisible = false, 2600);
+  }
+}).mount('#app');
 </script>
 
 </body>
