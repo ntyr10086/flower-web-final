@@ -8,9 +8,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Noto+Serif+TC:wght@400;500;600;700&family=Gaegu:wght@400;700&display=swap" rel="stylesheet">
 <style>
-/* ============================================================
-   一、 全域療癒色調變數 ＆ 基礎排版
-   ============================================================ */
+
 :root{
   --bg-paper:  #FDFBF7;
   --bg-cream:  #F5EBE6;
@@ -51,9 +49,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 input,textarea,select{font-family:inherit}
 img{max-width:100%;display:block}
 
-/* ============================================================
-   登入 / 註冊畫面
-   ============================================================ */
+
 #auth-screen{
   position:relative;z-index:1;
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;
@@ -467,7 +463,7 @@ input[type=range]::-moz-range-thumb{
       <button class="btn-primary" @click="handleAuthSubmit">{{ authMode === 'login' ? '進入手帳' : '建立帳號' }}</button>
 
       <div class="quick-login">
-        <p>— 給每個希望記錄與獲得療癒的人 —</p>
+        <p>— 給每個希望記錄與獲得療癒 —</p>
         <div class="quick-row">
           
         </div>
@@ -502,8 +498,8 @@ input[type=range]::-moz-range-thumb{
         <div class="page-pad">
           <textarea class="diary-text" v-model="draftText" placeholder="親愛的手帳，今天的我……"></textarea>
 
-          <div class="photo-preview" v-if="draftPhoto">
-            <div class="photo-tape"><img :src="draftPhoto" alt="上傳的照片" /></div>
+          <div class="photo-preview" v-if="draftPhotoURL">
+            <div class="photo-tape"><img :src="draftPhotoURL" alt="上傳的照片" /></div>
           </div>
 
           <div class="stickers-layer">
@@ -737,7 +733,7 @@ input[type=range]::-moz-range-thumb{
     </div>
   </div>
 
-  <!-- Modal 彈窗 -->
+  
   <div class="modal-mask" :class="{open: modalOpen}" @click="if($event.target === $event.currentTarget) modalOpen = false">
     <div class="modal" v-if="selectedFlower">
       <div class="big">{{ selectedFlower.img }}</div>
@@ -763,7 +759,7 @@ input[type=range]::-moz-range-thumb{
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
   import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
   import { getFirestore, collection, doc, getDoc, setDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
-  import { getStorage } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
+  import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
   import { getDatabase } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -786,8 +782,14 @@ input[type=range]::-moz-range-thumb{
   window.firebaseStorage = getStorage(firebaseApp);
   window.firebaseRtdb = getDatabase(firebaseApp);
   window.firestoreTools = { collection, doc, getDoc, setDoc, query, where, getDocs, deleteDoc };
+  window.storageTools = { ref, uploadBytes, getDownloadURL };
   
   console.log('✅ Firebase 已初始化');
+  console.log('🔐 Auth:', window.firebaseAuth ? 'OK' : 'FAIL');
+  console.log('📚 Firestore:', window.firebaseDb ? 'OK' : 'FAIL');
+  console.log('💾 Storage:', window.firebaseStorage ? 'OK' : 'FAIL');
+  console.log('🛠 StorageTools:', window.storageTools ? 'OK' : 'FAIL');
+  console.log('storageTools 內容:', Object.keys(window.storageTools || {}));
 </script>
 
 <script>
@@ -854,6 +856,7 @@ PetiteVue.createApp({
   // Form Data
   draftText: '',
   draftPhoto: null,
+  draftPhotoURL: null,
   sliderV: 50,
   sliderA: 50,
   publishToommunity: false,
@@ -990,6 +993,7 @@ PetiteVue.createApp({
     this.currentUser.unlockedItems = ['bg_default'];
     this.appliedBg = '#F5EBE6';
     this.appliedStickers = [];
+    this.draftPhotoURL = null;
     this.authUsername = '';
     this.authPassword = '';
     await this.loadData();
@@ -999,6 +1003,7 @@ PetiteVue.createApp({
   logout() {
     this.currentUser = { username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
     this.draftPhoto = null;
+    this.draftPhotoURL = null;
     this.draftText = '';
     this.activeTab = 'diary';
     this.showToast('已登出');
@@ -1015,13 +1020,12 @@ PetiteVue.createApp({
 
   handlePhotoUpload(e) {
     const file = e.target.files[0];
-    if(!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      this.draftPhoto = ev.target.result;
-      this.showToast('照片已貼進手帳內頁 📷');
-    };
-    reader.readAsDataURL(file);
+    if(!file) {
+      console.log('❌ 沒有選擇檔案');
+      return;
+    }
+    console.log('📷 開始上傳照片:', file.name, file.size, file.type);
+    this.uploadPhotoToStorage(file);
   },
 
   recommendFlower(userV, userA) {
@@ -1056,7 +1060,7 @@ PetiteVue.createApp({
         text: this.draftText,
         date: dateStr,
         flower: { id: flower._id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
-        photo: this.draftPhoto,
+        photo: this.draftPhotoURL,
         stickers: [...this.appliedStickers],
         isAnonymous: this.publishToommunity
       };
@@ -1078,7 +1082,7 @@ PetiteVue.createApp({
           username: this.currentUser.username,
           nickname: this.currentUser.nickname,
           text: this.draftText,
-          photo: this.draftPhoto,
+          photo: this.draftPhotoURL,
           flower: { id: flower._id, name: flower.name, img: flower.img },
           date: dateStr,
           hugs: 0,
@@ -1092,6 +1096,7 @@ PetiteVue.createApp({
       
       this.diaries.push(entry);
       this.draftPhoto = null;
+      this.draftPhotoURL = null;
       this.draftText = '';
       this.sliderV = 50;
       this.sliderA = 50;
@@ -1100,6 +1105,46 @@ PetiteVue.createApp({
     } catch(err) {
       this.showToast('記錄失敗 ❌');
       console.error('recordMood error:', err);
+    }
+  },
+
+  async uploadPhotoToStorage(file) {
+    try {
+      console.log('🔧 uploadPhotoToStorage 開始');
+      console.log('Firebase Storage:', window.firebaseStorage ? '✅ 已初始化' : '❌ 未初始化');
+      console.log('Storage Tools:', window.storageTools ? '✅ 已初始化' : '❌ 未初始化');
+      console.log('Username:', this.currentUser.username);
+      
+      const storage = window.firebaseStorage;
+      const tools = window.storageTools;
+      
+      if(!storage) throw new Error('Storage 未初始化');
+      if(!tools) throw new Error('Storage Tools 未初始化');
+      if(!this.currentUser.username) throw new Error('Username 未設置');
+      
+      const timestamp = Date.now();
+      const storagePath = `diaries/${this.currentUser.username}/${timestamp}`;
+      console.log('📁 上傳路徑:', storagePath);
+      
+      const photoRef = tools.ref(storage, storagePath);
+      console.log('📤 開始上傳檔案...');
+      
+      const uploadResult = await tools.uploadBytes(photoRef, file);
+      console.log('✅ 上傳成功:', uploadResult);
+      
+      const url = await tools.getDownloadURL(photoRef);
+      console.log('🔗 Download URL:', url);
+      
+      this.draftPhotoURL = url;
+      console.log('💾 draftPhotoURL 已設置:', this.draftPhotoURL);
+      
+      this.showToast('照片已上傳至手帳內頁 📷');
+      return url;
+    } catch(err) {
+      console.error('❌ 上傳照片失敗:', err);
+      console.error('錯誤詳情:', err.message, err.code);
+      this.showToast('照片上傳失敗 ❌');
+      return null;
     }
   },
 
@@ -1235,7 +1280,7 @@ PetiteVue.createApp({
   async giveHug(postId) {
     try {
       const tools = window.firestoreTools;
-      const postDocRef = tools.doc(window.firebaseDb, 'community-posts', postId);
+      const postDocRef = tools.doc(window.firebaseDb, 'communityPosts', postId);
       const postSnap = await tools.getDoc(postDocRef);
       
       if (!postSnap.exists()) {
@@ -1263,7 +1308,7 @@ PetiteVue.createApp({
   async giveFlower(postId) {
     try {
       const tools = window.firestoreTools;
-      const postDocRef = tools.doc(window.firebaseDb, 'community-posts', postId);
+      const postDocRef = tools.doc(window.firebaseDb, 'communityPosts', postId);
       const postSnap = await tools.getDoc(postDocRef);
       
       if (!postSnap.exists()) {
