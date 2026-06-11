@@ -757,15 +757,16 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <!-- Petite-Vue (cdnjs) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/petite-vue/0.4.1/petite-vue.iife.min.js"></script>
+
 <script type="module">
-  // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
   import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+  import { getAuth } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-auth.js";
+  import { getFirestore, collection, doc, getDoc, setDoc, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-firestore.js";
+  import { getStorage } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-storage.js";
+  import { getDatabase } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyB56gmNnVcT_vogKfZE04oSfLUgUMKu52c",
     authDomain: "flower-language-app.firebaseapp.com",
@@ -777,9 +778,17 @@ input[type=range]::-moz-range-thumb{
     measurementId: "G-KVC38WQP2D"
   };
 
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
+  const firebaseApp = initializeApp(firebaseConfig);
+  getAnalytics(firebaseApp);
+  
+  // 全局 Firebase 服務引用
+  window.firebaseAuth = getAuth(firebaseApp);
+  window.firebaseDb = getFirestore(firebaseApp);
+  window.firebaseStorage = getStorage(firebaseApp);
+  window.firebaseRtdb = getDatabase(firebaseApp);
+  window.firestoreTools = { collection, doc, getDoc, setDoc, query, where, getDocs, deleteDoc };
+  
+  console.log('✅ Firebase 已初始化');
 </script>
 
 <script>
@@ -803,13 +812,14 @@ function avatarFor(nickname){
 // Firestore 集合引用
 let db = null, flowerCol = null, itemCol = null;
 function initFirestoreRefs(username) {
-  if (!firebaseDb) {
+  if (!window.firebaseDb || !window.firestoreTools) {
     console.error('❌ Firebase 未初始化');
     return;
   }
-  db = firebaseDb;
-  flowerCol = firebase.firestore().collection('flowers');
-  itemCol = firebase.firestore().collection('items');
+  db = window.firebaseDb;
+  flowerCol = window.firestoreTools.collection(window.firebaseDb, 'flowers');
+  itemCol = window.firestoreTools.collection(window.firebaseDb, 'items');
+  console.log('✅ Firestore 集合引用已初始化');
 }
 
 // 啟動 Petite-Vue
@@ -888,8 +898,12 @@ PetiteVue.createApp({
   },
 
   async initDefaultData() {
+    const tools = window.firestoreTools;
+    
     // 檢查 flowers 集合是否存在且有資料
-    const flowersSnap = await firebaseDb.collection('flowers').limit(1).get();
+    const flowersRef = tools.collection(window.firebaseDb, 'flowers');
+    const flowersSnap = await tools.getDocs(tools.query(flowersRef));
+    
     if (flowersSnap.empty) {
       const defaultFlowers = [
         { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
@@ -898,11 +912,14 @@ PetiteVue.createApp({
         { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
       ];
       for (const flower of defaultFlowers) {
-        await firebaseDb.collection('flowers').doc(flower._id).set(flower);
+        const flowerRef = tools.doc(window.firebaseDb, 'flowers', flower._id);
+        await tools.setDoc(flowerRef, flower);
       }
     }
     
-    const itemsSnap = await firebaseDb.collection('items').limit(1).get();
+    const itemsRef = tools.collection(window.firebaseDb, 'items');
+    const itemsSnap = await tools.getDocs(tools.query(itemsRef));
+    
     if (itemsSnap.empty) {
       const defaultShop = [
         { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
@@ -912,28 +929,39 @@ PetiteVue.createApp({
         { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
       ];
       for (const item of defaultShop) {
-        await firebaseDb.collection('items').doc(item._id).set(item);
+        const itemRef = tools.doc(window.firebaseDb, 'items', item._id);
+        await tools.setDoc(itemRef, item);
       }
     }
   },
 
   async loadData() {
     try {
+      const tools = window.firestoreTools;
+      
       // 載入花卉
-      const flowersSnap = await firebaseDb.collection('flowers').get();
-      this.flowers = flowersSnap.docs.map(doc => doc.data());
+      const flowersRef = tools.collection(window.firebaseDb, 'flowers');
+      const flowersSnap = await tools.getDocs(flowersRef);
+      this.flowers = flowersSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
       
       // 載入商品
-      const itemsSnap = await firebaseDb.collection('items').get();
-      this.shopItems = itemsSnap.docs.map(doc => doc.data());
+      const itemsRef = tools.collection(window.firebaseDb, 'items');
+      const itemsSnap = await tools.getDocs(itemsRef);
+      this.shopItems = itemsSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
       
       // 如果已登入，載入日記和社群貼文
       if (this.currentUser.username) {
-        const diariesSnap = await firebaseDb.collection('users').doc(this.currentUser.username).collection('diaries').get();
-        this.diaries = diariesSnap.docs.map(doc => doc.data());
+        const diariesRef = tools.collection(
+          tools.doc(window.firebaseDb, 'users', this.currentUser.username),
+          'diaries'
+        );
+        const diariesSnap = await tools.getDocs(diariesRef);
+        this.diaries = diariesSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
         
-        const postsSnap = await firebaseDb.collection('communityPosts').where('username', '==', this.currentUser.username).get();
-        this.communityPosts = postsSnap.docs.map(doc => doc.data());
+        const postsRef = tools.collection(window.firebaseDb, 'communityPosts');
+        const postsQuery = tools.query(postsRef, tools.where('username', '==', this.currentUser.username));
+        const postsSnap = await tools.getDocs(postsQuery);
+        this.communityPosts = postsSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
       }
     } catch(err) {
       console.error('載入資料失敗:', err);
@@ -1018,6 +1046,7 @@ PetiteVue.createApp({
     }
     
     try {
+      const tools = window.firestoreTools;
       const timestamp = Date.now();
       const dateStr = new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
       
@@ -1033,7 +1062,11 @@ PetiteVue.createApp({
         isAnonymous: this.publishToommunity
       };
       
-      await firebaseDb.collection('users').doc(this.currentUser.username).collection('diaries').doc('d_' + timestamp).set(entry);
+      const diaryRef = tools.doc(
+        tools.collection(tools.doc(window.firebaseDb, 'users', this.currentUser.username), 'diaries'),
+        'd_' + timestamp
+      );
+      await tools.setDoc(diaryRef, entry);
       
       if(!this.currentUser.unlockedItems.includes('flower-' + flower._id)){
         this.currentUser.unlockedItems.push('flower-' + flower._id);
@@ -1053,7 +1086,8 @@ PetiteVue.createApp({
           flowersGiven: 0,
           hugged: false
         };
-        await firebaseDb.collection('communityPosts').doc('p_' + timestamp).set(communityPost);
+        const postRef = tools.doc(window.firebaseDb, 'communityPosts', 'p_' + timestamp);
+        await tools.setDoc(postRef, communityPost);
         this.communityPosts.push(communityPost);
       }
       
@@ -1127,7 +1161,9 @@ PetiteVue.createApp({
     };
     
     try {
-      await firebaseDb.collection('flowers').doc(flower._id).set(flower);
+      const tools = window.firestoreTools;
+      const flowerRef = tools.doc(window.firebaseDb, 'flowers', flower._id);
+      await tools.setDoc(flowerRef, flower);
       this.flowers = [...this.flowers, flower]; 
       this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
       this.showToast('成功上架新花卉！🌸');
@@ -1140,7 +1176,9 @@ PetiteVue.createApp({
   async deleteFlower(flowerId) {
     if(!confirm('確定刪除？')) return;
     try {
-      await firebaseDb.collection('flowers').doc(flowerId).delete();
+      const tools = window.firestoreTools;
+      const flowerRef = tools.doc(window.firebaseDb, 'flowers', flowerId);
+      await tools.deleteDoc(flowerRef);
       this.flowers = this.flowers.filter(f => f._id !== flowerId);
       this.showToast('花卉已刪除 🗑️');
     } catch(err) {
@@ -1168,7 +1206,9 @@ PetiteVue.createApp({
     };
     
     try {
-      await firebaseDb.collection('items').doc(item._id).set(item);
+      const tools = window.firestoreTools;
+      const itemRef = tools.doc(window.firebaseDb, 'items', item._id);
+      await tools.setDoc(itemRef, item);
       this.shopItems = [...this.shopItems, item];
       this.newItem = { name: '', type: 'bg', price: 0, val: '' };
       this.showToast('成功上架新商品！🛍️');
@@ -1181,8 +1221,10 @@ PetiteVue.createApp({
   async deleteItem(itemId) {
     if(!confirm('確定刪除？')) return;
     try {
-      const latestDoc = await globalDb.get(itemId);
-      await globalDb.remove(latestDoc);
+      const tools = window.firestoreTools;
+      const itemDocRef = tools.doc(window.firebaseDb, 'items', itemId);
+      await tools.deleteDoc(itemDocRef);
+      
       this.shopItems = this.shopItems.filter(i => i._id !== itemId);
       this.showToast('商品已刪除 🗑️');
     } catch(err) {
@@ -1193,10 +1235,20 @@ PetiteVue.createApp({
 
   async giveHug(postId) {
     try {
-      const latestPost = await db.get(postId);
-      latestPost.hugs += 1;
+      const tools = window.firestoreTools;
+      const postDocRef = tools.doc(window.firebaseDb, 'community-posts', postId);
+      const postSnap = await tools.getDoc(postDocRef);
+      
+      if (!postSnap.exists()) {
+        this.showToast('貼文不存在');
+        return;
+      }
+      
+      const latestPost = { ...postSnap.data(), _id: postSnap.id };
+      latestPost.hugs = (latestPost.hugs || 0) + 1;
       latestPost.hugged = true;
-      await db.put(latestPost);
+      
+      await tools.setDoc(postDocRef, latestPost);
       
       const idx = this.communityPosts.findIndex(p => p._id === postId);
       if(idx !== -1) {
@@ -1211,9 +1263,19 @@ PetiteVue.createApp({
 
   async giveFlower(postId) {
     try {
-      const latestPost = await db.get(postId);
-      latestPost.flowersGiven += 1;
-      await db.put(latestPost);
+      const tools = window.firestoreTools;
+      const postDocRef = tools.doc(window.firebaseDb, 'community-posts', postId);
+      const postSnap = await tools.getDoc(postDocRef);
+      
+      if (!postSnap.exists()) {
+        this.showToast('貼文不存在');
+        return;
+      }
+      
+      const latestPost = { ...postSnap.data(), _id: postSnap.id };
+      latestPost.flowersGiven = (latestPost.flowersGiven || 0) + 1;
+      
+      await tools.setDoc(postDocRef, latestPost);
       
       const idx = this.communityPosts.findIndex(p => p._id === postId);
       if(idx !== -1) {
