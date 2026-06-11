@@ -757,45 +757,29 @@ input[type=range]::-moz-range-thumb{
 </div>
 
 <!-- Petite-Vue (cdnjs) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/petite-vue/0.4.1/petite-vue.iife.min.js"></script>
-<!-- PouchDB -->
-<script src="https://cdn.jsdelivr.net/npm/pouchdb@8.0.1/dist/pouchdb.min.js"></script>
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
 
-<!-- Firebase CDN -->
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-storage.js"></script>
+  // Your web app's Firebase configuration
+  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+  const firebaseConfig = {
+    apiKey: "AIzaSyB56gmNnVcT_vogKfZE04oSfLUgUMKu52c",
+    authDomain: "flower-language-app.firebaseapp.com",
+    databaseURL: "https://flower-language-app-default-rtdb.firebaseio.com",
+    projectId: "flower-language-app",
+    storageBucket: "flower-language-app.firebasestorage.app",
+    messagingSenderId: "509334232078",
+    appId: "1:509334232078:web:50a779494d6812b67df05f",
+    measurementId: "G-KVC38WQP2D"
+  };
 
-<!-- Firebase 配置初始化 -->
-<script>
-// Firebase 配置（請填入你的 Firebase 專案設定）
-const firebaseConfig = {
-  apiKey: process.env.VITE_FIREBASE_API_KEY,
-  authDomain:process.env.VITE_FIREBASE_AUTH_DOMAIN,
-  databaseURL: process.env.VITE_FIREBASE_DATABASE_URL,
-  projectId:process.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId:process.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:process.env.VITE_FIREBASE_APP_ID,
-  measurementId:process.env.VITE_FIREBASE_MEASUREMENT_ID
-};
-
-// 初始化 Firebase（若配置完整）
-let firebaseApp = null, firebaseAuth = null, firebaseDb = null, firebaseStorage = null;
-try {
-  if (firebaseConfig.projectId) {
-    firebaseApp = firebase.initializeApp(firebaseConfig);
-    firebaseAuth = firebase.auth();
-    firebaseDb = firebase.firestore();
-    firebaseStorage = firebase.storage();
-    console.log('✅ Firebase 已初始化');
-  } else {
-    console.warn('⚠️ Firebase 配置未完整，將使用本地 PouchDB');
-  }
-} catch (err) {
-  console.warn('⚠️ Firebase 初始化失敗:', err.message);
-}
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 </script>
 
 <script>
@@ -816,9 +800,17 @@ function avatarFor(nickname){
   return NICK_AVATAR[h % NICK_AVATAR.length];
 }
 
-// 初始化 PouchDB
-let db = new PouchDB('flower-language-guest');
-const globalDb = new PouchDB('flower-language-global');  // 全局数据库：花卉、商品
+// Firestore 集合引用
+let db = null, flowerCol = null, itemCol = null;
+function initFirestoreRefs(username) {
+  if (!firebaseDb) {
+    console.error('❌ Firebase 未初始化');
+    return;
+  }
+  db = firebaseDb;
+  flowerCol = firebase.firestore().collection('flowers');
+  itemCol = firebase.firestore().collection('items');
+}
 
 // 啟動 Petite-Vue
 PetiteVue.createApp({
@@ -880,46 +872,72 @@ PetiteVue.createApp({
 
   // Methods
   async initAll() {
+    if (!firebaseDb) {
+      this.showToast('❌ Firebase 未初始化，請設定配置');
+      return;
+    }
     try {
-      // 檢查並建立預設資料
-      try {
-        await db.get('_config');
-      } catch(e) {
-        if (e.status === 404) {
-          const defaultFlowers = [
-            { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
-            { _id: 'f_lavender', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
-            { _id: 'f_lotus', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
-            { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
-          ];
-          const defaultShop = [
-            { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
-            { _id: 'bg_sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
-            { _id: 'bg_sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
-            { _id: 'st_flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
-            { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
-          ];
-          await db.bulkDocs([{ _id: '_config', initialized: true }, ...defaultFlowers, ...defaultShop]);
-        }
-      }
-      // 載入資料
+      initFirestoreRefs();
+      await this.initDefaultData();
       await this.loadData();
+      this.showToast('✅ 應用已就緒');
     } catch(err) {
       console.error('初始化失敗:', err);
+      this.showToast('初始化失敗 ❌');
+    }
+  },
+
+  async initDefaultData() {
+    // 檢查 flowers 集合是否存在且有資料
+    const flowersSnap = await firebaseDb.collection('flowers').limit(1).get();
+    if (flowersSnap.empty) {
+      const defaultFlowers = [
+        { _id: 'f_sunflower', name: '向日葵', word: '信念、光輝與耀眼的愛', v: 80, a: 80, img: '🌻', type: 'flower' },
+        { _id: 'f_lavender', name: '薰衣草', word: '等待愛情、內心的寧靜', v: 70, a: 30, img: '🪻', type: 'flower' },
+        { _id: 'f_lotus', name: '蓮花', word: '清淨、純潔與出淤泥不染', v: 60, a: 10, img: '🪷', type: 'flower' },
+        { _id: 'f_tulip', name: '鬱金香', word: '優雅、博愛與高貴的承諾', v: 30, a: 40, img: '🌷', type: 'flower' }
+      ];
+      for (const flower of defaultFlowers) {
+        await firebaseDb.collection('flowers').doc(flower._id).set(flower);
+      }
+    }
+    
+    const itemsSnap = await firebaseDb.collection('items').limit(1).get();
+    if (itemsSnap.empty) {
+      const defaultShop = [
+        { _id: 'bg_default', name: '楓糖燕麥背景', type: 'bg', price: 0, val: '#F5EBE6' },
+        { _id: 'bg_sunset', name: '晨曦落葉漸層', type: 'bg', price: 200, val: 'linear-gradient(135deg, #FFEDD5, #FED7AA)' },
+        { _id: 'bg_sunflower', name: '午後向日葵黃', type: 'bg', price: 350, val: '#FEF08A' },
+        { _id: 'st_flower', name: '治癒手繪小花貼紙', type: 'sticker', price: 100, val: '🌸' },
+        { _id: 'st_star', name: '閃耀星星貼紙', type: 'sticker', price: 150, val: '✨' }
+      ];
+      for (const item of defaultShop) {
+        await firebaseDb.collection('items').doc(item._id).set(item);
+      }
     }
   },
 
   async loadData() {
-    const allDocs = await db.allDocs({ include_docs: true });
-    const globalDocs = await globalDb.allDocs({ include_docs: true });
-    
-    // 从全局数据库读取花卉和商品（所有用户共享）
-    this.flowers = [...globalDocs.rows.filter(r => r.doc.type === 'flower').map(r => r.doc)];
-    this.shopItems = [...globalDocs.rows.filter(r => ['bg', 'sticker'].includes(r.doc.type)).map(r => r.doc)];
-    
-    // 从个人数据库读取日记和社群贴文
-    this.diaries = [...allDocs.rows.filter(r => r.doc.type === 'diary').map(r => r.doc)];
-    this.communityPosts = [...allDocs.rows.filter(r => r.doc.type === 'community-post').map(r => r.doc)];
+    try {
+      // 載入花卉
+      const flowersSnap = await firebaseDb.collection('flowers').get();
+      this.flowers = flowersSnap.docs.map(doc => doc.data());
+      
+      // 載入商品
+      const itemsSnap = await firebaseDb.collection('items').get();
+      this.shopItems = itemsSnap.docs.map(doc => doc.data());
+      
+      // 如果已登入，載入日記和社群貼文
+      if (this.currentUser.username) {
+        const diariesSnap = await firebaseDb.collection('users').doc(this.currentUser.username).collection('diaries').get();
+        this.diaries = diariesSnap.docs.map(doc => doc.data());
+        
+        const postsSnap = await firebaseDb.collection('communityPosts').where('username', '==', this.currentUser.username).get();
+        this.communityPosts = postsSnap.docs.map(doc => doc.data());
+      }
+    } catch(err) {
+      console.error('載入資料失敗:', err);
+    }
   },
 
   async handleAuthSubmit() {
@@ -936,8 +954,7 @@ PetiteVue.createApp({
   },
 
   async loginAs(username, role) {
-    // 为该用户创建独立的数据库
-    db = new PouchDB(`flower-language-${username}`);
+    initFirestoreRefs(username);
     
     this.currentUser.username = username;
     this.currentUser.role = role;
@@ -953,9 +970,6 @@ PetiteVue.createApp({
   },
 
   logout() {
-    // 登出时重置为临时数据库
-    db = new PouchDB('flower-language-guest');
-    
     this.currentUser = { username: '', role: '', nickname: '', points: 500, unlockedItems: ['bg_default'] };
     this.draftPhoto = null;
     this.draftText = '';
@@ -1002,43 +1016,58 @@ PetiteVue.createApp({
       this.showToast('圖鑑裡還沒有花朵，請管理員先去後台生一朵花花 🌸');
       return;
     }
-    const entry = {
-      _id: 'd_' + Date.now(),
-      type: 'diary',
-      text: this.draftText,
-      date: new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}),
-      flower: { id: flower._id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
-      photo: this.draftPhoto,
-      stickers: [...this.appliedStickers],
-      isAnonymous: this.publishToommunity
-    };
-    await db.put(entry);
-    if(!this.currentUser.unlockedItems.includes('flower-' + flower._id)){
-      this.currentUser.unlockedItems.push('flower-' + flower._id);
-    }
-    if(this.publishToommunity){
-      const communityPost = {
-        _id: 'p_' + Date.now(),
-        type: 'community-post',
-        nickname: this.currentUser.nickname,
+    
+    try {
+      const timestamp = Date.now();
+      const dateStr = new Date().toLocaleString('zh-TW', {year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'});
+      
+      const entry = {
+        _id: 'd_' + timestamp,
+        type: 'diary',
+        username: this.currentUser.username,
         text: this.draftText,
+        date: dateStr,
+        flower: { id: flower._id, name: flower.name, word: flower.word, img: flower.img, v: flower.v, a: flower.a },
         photo: this.draftPhoto,
-        flower: { id: flower._id, name: flower.name, img: flower.img },
-        date: entry.date,
-        hugs: 0,
-        flowersGiven: 0,
-        hugged: false
+        stickers: [...this.appliedStickers],
+        isAnonymous: this.publishToommunity
       };
-      await db.put(communityPost);
-      this.communityPosts.push(communityPost);
+      
+      await firebaseDb.collection('users').doc(this.currentUser.username).collection('diaries').doc('d_' + timestamp).set(entry);
+      
+      if(!this.currentUser.unlockedItems.includes('flower-' + flower._id)){
+        this.currentUser.unlockedItems.push('flower-' + flower._id);
+      }
+      
+      if(this.publishToommunity){
+        const communityPost = {
+          _id: 'p_' + timestamp,
+          type: 'community-post',
+          username: this.currentUser.username,
+          nickname: this.currentUser.nickname,
+          text: this.draftText,
+          photo: this.draftPhoto,
+          flower: { id: flower._id, name: flower.name, img: flower.img },
+          date: dateStr,
+          hugs: 0,
+          flowersGiven: 0,
+          hugged: false
+        };
+        await firebaseDb.collection('communityPosts').doc('p_' + timestamp).set(communityPost);
+        this.communityPosts.push(communityPost);
+      }
+      
+      this.diaries.push(entry);
+      this.draftPhoto = null;
+      this.draftText = '';
+      this.sliderV = 50;
+      this.sliderA = 50;
+      this.publishToommunity = false;
+      this.showFlowerModal(flower._id, true);
+    } catch(err) {
+      this.showToast('記錄失敗 ❌');
+      console.error('recordMood error:', err);
     }
-    this.diaries.push(entry);
-    this.draftPhoto = null;
-    this.draftText = '';
-    this.sliderV = 50;
-    this.sliderA = 50;
-    this.publishToommunity = false;
-    this.showFlowerModal(flower._id, true);
   },
 
   showFlowerModal(flowerId, isRecommend) {
@@ -1098,15 +1127,12 @@ PetiteVue.createApp({
     };
     
     try {
-      console.log('📤 正在上架花卉:', flower);
-      const result = await globalDb.put(flower);
-      console.log('✅ 花卉上架成功:', result);
-      
+      await firebaseDb.collection('flowers').doc(flower._id).set(flower);
       this.flowers = [...this.flowers, flower]; 
       this.newFlower = { name: '', img: '🌷', word: '', v: 50, a: 50 };
       this.showToast('成功上架新花卉！🌸');
     } catch(err) {
-      console.error('❌ 花卉上架失敗:', err.name, err.message);
+      console.error('花卉上架失敗:', err);
       this.showToast(`上架失敗: ${err.message} ❌`);
     }
   },
@@ -1114,8 +1140,7 @@ PetiteVue.createApp({
   async deleteFlower(flowerId) {
     if(!confirm('確定刪除？')) return;
     try {
-      const latestDoc = await globalDb.get(flowerId);
-      await globalDb.remove(latestDoc);
+      await firebaseDb.collection('flowers').doc(flowerId).delete();
       this.flowers = this.flowers.filter(f => f._id !== flowerId);
       this.showToast('花卉已刪除 🗑️');
     } catch(err) {
@@ -1143,15 +1168,12 @@ PetiteVue.createApp({
     };
     
     try {
-      console.log('📤 正在上架商品:', item);
-      const result = await globalDb.put(item);
-      console.log('✅ 商品上架成功:', result);
-      
+      await firebaseDb.collection('items').doc(item._id).set(item);
       this.shopItems = [...this.shopItems, item];
       this.newItem = { name: '', type: 'bg', price: 0, val: '' };
       this.showToast('成功上架新商品！🛍️');
     } catch(err) {
-      console.error('❌ 商品上架失敗:', err.name, err.message);
+      console.error('商品上架失敗:', err);
       this.showToast(`上架失敗: ${err.message} ❌`);
     }
   },
