@@ -961,8 +961,7 @@ PetiteVue.createApp({
         this.diaries = diariesSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
         
         const postsRef = tools.collection(window.firebaseDb, 'communityPosts');
-        const postsQuery = tools.query(postsRef, tools.where('username', '==', this.currentUser.username));
-        const postsSnap = await tools.getDocs(postsQuery);
+        const postsSnap = await tools.getDocs(postsRef);
         this.communityPosts = postsSnap.docs.map(doc => ({ ...doc.data(), _id: doc.id }));
       }
     } catch(err) {
